@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>75 Hard – Health by Kiran Kumar</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="dashboard-body">
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <h1>Health by Kiran Kumar</h1>
+    <div class="nav-dropdown">
+      <button class="nav-toggle" onclick="toggleNav()">☰ Menu</button>
+      <div class="dropdown-menu" id="navMenu">
+        <a href="dashboard.html">🏠 Home</a>
+        <a href="75hard.html" class="active">💪 75 Hard Challenge</a>
+        <a href="index.html" onclick="logout()">🚪 Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-content">
+
+    <!-- Challenge Intro -->
+    <div class="challenge-intro">
+      <h2>💪 75 Hard Challenge</h2>
+      <p>Complete all 5 tasks every single day. No excuses. No compromises.</p>
+      <div class="day-badge" id="dayBadge">Day —</div>
+    </div>
+
+    <!-- Date -->
+    <div class="date-display">
+      <div>
+        <div class="date-label">Today's Date</div>
+        <div class="date-value" id="todayDate"></div>
+      </div>
+      <div style="font-size:1.4rem;">📅</div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-label">Daily Progress</span>
+        <span class="progress-count"><span id="doneCount">0</span>/5 tasks</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- Task List -->
+    <div class="task-list" id="taskList">
+
+      <div class="task-item" onclick="toggleTask(this, 'nofap')">
+        <input type="checkbox" class="hidden-check" id="nofap" name="nofap" />
+        <div class="task-checkbox"></div>
+        <div class="task-info">
+          <div class="task-name">🧘 NoFap</div>
+          <div class="task-desc">Mental clarity & discipline</div>
+        </div>
+      </div>
+
+      <div class="task-item" onclick="toggleTask(this, 'meals')">
+        <input type="checkbox" class="hidden-check" id="meals" name="meals" />
+        <div class="task-checkbox"></div>
+        <div class="task-info">
+          <div class="task-name">🍽️ Two Meals (12 PM – 6 PM)</div>
+          <div class="task-desc">Intermittent fasting window</div>
+        </div>
+      </div>
+
+      <div class="task-item" onclick="toggleTask(this, 'exercise')">
+        <input type="checkbox" class="hidden-check" id="exercise" name="exercise" />
+        <div class="task-checkbox"></div>
+        <div class="task-info">
+          <div class="task-name">🏋️ 45 Minutes Exercise</div>
+          <div class="task-desc">Push your body every day</div>
+        </div>
+      </div>
+
+      <div class="task-item" onclick="toggleTask(this, 'study')">
+        <input type="checkbox" class="hidden-check" id="study" name="study" />
+        <div class="task-checkbox"></div>
+        <div class="task-info">
+          <div class="task-name">📡 CCNA (90 mins Study)</div>
+          <div class="task-desc">Network certifications & growth</div>
+        </div>
+      </div>
+
+      <div class="task-item" onclick="toggleTask(this, 'reading')">
+        <input type="checkbox" class="hidden-check" id="reading" name="reading" />
+        <div class="task-checkbox"></div>
+        <div class="task-info">
+          <div class="task-name">📚 30 Min Self-Help Reading</div>
+          <div class="task-desc">Feed your mind daily</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-area">
+      <button class="btn" id="submitBtn" onclick="submitChallenge()">Submit Today's Log →</button>
+      <div class="submit-status" id="submitStatus"></div>
+    </div>
+
+  </div>
+
+  <footer style="background:#000;color:rgba(255,255,255,0.35);">Built with discipline by Kiran Kumar</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
