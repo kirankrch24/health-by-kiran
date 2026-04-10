@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Eaten Log – Health by Kiran Kumar</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="dashboard-body">
+
+  <!-- Dashboard Header -->
+  <header class="dashboard-header">
+    <h1>Health by Kiran Kumar</h1>
+    <div class="nav-dropdown">
+      <button class="nav-toggle" onclick="toggleNav()">☰ Menu</button>
+      <div class="dropdown-menu" id="navMenu">
+        <a href="dashboard.html">🏠 Home</a>
+        <a href="75hard.html">💪 75 Hard Challenge</a>
+        <a href="food.html" class="active">🍽️ Food Eaten Log</a>
+        <a href="index.html" onclick="logout()">🚪 Logout</a>
+      </div>
+    </div>
+  </header>
+  
+  <div class="dashboard-content">
+    <div class="challenge-intro" style="margin-bottom: 20px;">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">🍽️ Food Eaten Log</h2>
+      <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Track your meals, portions, and hunger levels.</p>
+    </div>
+
+    <div class="card" style="border:1.5px solid #e8e8e8;">
+  <div class="form-group">
+    <label for="foodDate">Date</label>
+    <input type="date" id="foodDate">
+  </div>
+  
+  <div class="form-group">
+    <label for="foodTime">Time</label>
+    <input type="time" id="foodTime">
+  </div>
+  
+  <div class="form-group">
+    <label for="foodMealType">Meal Type</label>
+    <select id="foodMealType">
+      <option value="Breakfast">Breakfast</option>
+      <option value="Lunch">Lunch</option>
+      <option value="Dinner">Dinner</option>
+      <option value="Snacks">Snacks</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="noOfFoodItems">No. of Food Items</label>
+    <select id="noOfFoodItems" onchange="toggleFoodItems()">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+  </div>
+
+  <div class="form-group" id="foodItem1Group">
+    <label for="foodItem1">Food Item 1</label>
+    <input type="text" id="foodItem1" placeholder="What did you eat?">
+  </div>
+  <div class="form-group" id="foodItem2Group" style="display: none;">
+    <label for="foodItem2">Food Item 2</label>
+    <input type="text" id="foodItem2" placeholder="Second item?">
+  </div>
+  <div class="form-group" id="foodItem3Group" style="display: none;">
+    <label for="foodItem3">Food Item 3</label>
+    <input type="text" id="foodItem3" placeholder="Third item?">
+  </div>
+  <div class="form-group" id="foodItem4Group" style="display: none;">
+    <label for="foodItem4">Food Item 4</label>
+    <input type="text" id="foodItem4" placeholder="Fourth item?">
+  </div>
+  <div class="form-group" id="foodItem5Group" style="display: none;">
+    <label for="foodItem5">Food Item 5</label>
+    <input type="text" id="foodItem5" placeholder="Fifth item?">
+  </div>
+  
+  <div class="form-group">
+    <label for="foodSource">Source</label>
+    <select id="foodSource" onchange="togglePriceField()">
+      <option value="Homemade">Homemade</option>
+      <option value="Grocery">Grocery</option>
+      <option value="Takeaway">Takeaway</option>
+      <option value="Restaurant">Restaurant</option>
+    </select>
+  </div>
+  
+  <div class="form-group" id="shopGroup" style="display: none;">
+    <label for="foodShop">Which Shop / Restaurant?</label>
+    <input type="text" id="foodShop" placeholder="Enter name">
+  </div>
+
+  <div class="form-group" id="priceGroup" style="display: none;">
+    <label for="foodPrice">Price (£)</label>
+    <input type="number" id="foodPrice" placeholder="Enter amount">
+  </div>
+  
+  <div class="form-group">
+    <label for="foodPortion">Portion Size (grams)</label>
+    <input type="number" id="foodPortion" placeholder="e.g. 200">
+  </div>
+  
+  <div class="form-group">
+    <label for="foodHunger">Hunger</label>
+    <select id="foodHunger">
+      <option value="Low">Low</option>
+      <option value="Medium" selected>Medium</option>
+      <option value="High">High</option>
+      <option value="Very">Very</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="foodRequired">Required</label>
+    <select id="foodRequired">
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="foodNotes">Notes (Improvement text)</label>
+    <textarea id="foodNotes" placeholder="Any thoughts on improving this meal?"></textarea>
+  </div>
+  
+      <div class="submit-area" style="margin-top: 20px; padding-bottom: 0;">
+        <button class="btn" id="submitFoodBtn" onclick="submitFoodLog()">Submit Food Log →</button>
+        <div class="submit-status" id="submitFoodStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer style="background:#000;color:rgba(255,255,255,0.35);margin-top:40px;">Built with discipline by Kiran Kumar</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

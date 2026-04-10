@@ -2,6 +2,7 @@
 // CONFIG
 // =====================
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCHWtntMcdfK-btEnTeT4adoAxZN9dEpYFesF2SbWn-4to03OiaXXF3D5sFhhC4hyrdg/exec';
+const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRGeiqcoB53XCSYP-Gj8-DrmKwlUy9lojSBCevBnp-PgWk6IVMNHOz8dMYKVO1qlCMpQ/exec';
 
 const QUOTES = [
   { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
@@ -33,7 +34,7 @@ function logout() {
 // AUTH GUARD
 // =====================
 (function() {
-  const protect = ['dashboard.html', '75hard.html'];
+  const protect = ['dashboard.html', '75hard.html', 'food.html'];
   const page = window.location.pathname.split('/').pop();
   if (protect.includes(page) && !sessionStorage.getItem('loggedIn')) {
     window.location.href = 'index.html';
@@ -86,18 +87,23 @@ if (streakEl) {
 
 // 75Hard page init
 const todayDateEl = document.getElementById('todayDate');
-if (todayDateEl) todayDateEl.textContent = formatDate(new Date());
+if (todayDateEl) todayDateEl.value = getTodayISO();
 
 const dayBadge = document.getElementById('dayBadge');
 if (dayBadge) {
-  const start = localStorage.getItem('challenge_start');
-  if (start) {
-    const diff = Math.floor((new Date() - new Date(start)) / (1000 * 60 * 60 * 24)) + 1;
-    dayBadge.textContent = `Day ${diff} of 75`;
-  } else {
-    localStorage.setItem('challenge_start', getTodayISO());
-    dayBadge.textContent = 'Day 1 of 75';
-  }
+  const challengeStartDate = '2026-04-11';
+  localStorage.setItem('challenge_start', challengeStartDate); // Keep localStorage consistent
+  const diff = Math.floor((new Date() - new Date(challengeStartDate)) / (1000 * 60 * 60 * 24)) + 1;
+  dayBadge.textContent = `Day ${diff} of 75`;
+}
+
+// Food Log init
+const foodDateEl = document.getElementById('foodDate');
+if (foodDateEl) foodDateEl.value = getTodayISO();
+const foodTimeEl = document.getElementById('foodTime');
+if (foodTimeEl) {
+  const now = new Date();
+  foodTimeEl.value = now.toTimeString().substring(0, 5);
 }
 
 // =====================
@@ -127,7 +133,7 @@ async function submitChallenge() {
   const status = document.getElementById('submitStatus');
 
   const data = {
-    date: getTodayISO(),
+    date: document.getElementById('todayDate')?.value || getTodayISO(),
     nofap: document.getElementById('nofap')?.checked ? 'YES' : 'NO',
     meals: document.getElementById('meals')?.checked ? 'YES' : 'NO',
     exercise: document.getElementById('exercise')?.checked ? 'YES' : 'NO',
@@ -169,6 +175,89 @@ async function submitChallenge() {
   }
 
   btn.textContent = 'Submit Today\'s Log →';
+  btn.disabled = false;
+}
+
+// =====================
+// FOOD LOG
+// =====================
+function toggleFoodItems() {
+  const count = parseInt(document.getElementById('noOfFoodItems')?.value || 1);
+  for (let i = 1; i <= 5; i++) {
+    const group = document.getElementById('foodItem' + i + 'Group');
+    if (group) {
+      group.style.display = i <= count ? 'flex' : 'none';
+    }
+  }
+}
+
+function togglePriceField() {
+  const source = document.getElementById('foodSource')?.value;
+  const priceGroup = document.getElementById('priceGroup');
+  const shopGroup = document.getElementById('shopGroup');
+  if (source === 'Grocery' || source === 'Takeaway' || source === 'Restaurant') {
+    if (priceGroup) priceGroup.style.display = 'block';
+    if (shopGroup) shopGroup.style.display = 'block';
+  } else {
+    if (priceGroup) priceGroup.style.display = 'none';
+    if (shopGroup) shopGroup.style.display = 'none';
+  }
+}
+
+async function submitFoodLog() {
+  const btn = document.getElementById('submitFoodBtn');
+  const status = document.getElementById('submitFoodStatus');
+
+  const data = {
+    logType: 'FOOD_LOG',
+    date: document.getElementById('foodDate')?.value || getTodayISO(),
+    time: document.getElementById('foodTime')?.value || '',
+    mealType: document.getElementById('foodMealType')?.value || '',
+    noOfItems: document.getElementById('noOfFoodItems')?.value || '1',
+    foodItem1: document.getElementById('foodItem1')?.value || '',
+    foodItem2: document.getElementById('foodItem2')?.value || '',
+    foodItem3: document.getElementById('foodItem3')?.value || '',
+    foodItem4: document.getElementById('foodItem4')?.value || '',
+    foodItem5: document.getElementById('foodItem5')?.value || '',
+    source: document.getElementById('foodSource')?.value || '',
+    shop: document.getElementById('shopGroup')?.style.display !== 'none' ? document.getElementById('foodShop')?.value : '',
+    price: document.getElementById('priceGroup')?.style.display !== 'none' ? document.getElementById('foodPrice')?.value : '',
+    portionSize: document.getElementById('foodPortion')?.value || '',
+    hunger: document.getElementById('foodHunger')?.value || '',
+    required: document.getElementById('foodRequired')?.value || '',
+    notes: document.getElementById('foodNotes')?.value || ''
+  };
+
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+  status.className = 'submit-status';
+
+  // Save to localStorage backup
+  localStorage.setItem('food_log_' + Date.now(), JSON.stringify(data));
+
+  if (!FOOD_APPS_SCRIPT_URL || FOOD_APPS_SCRIPT_URL === 'YOUR_FOOD_GOOGLE_APPS_SCRIPT_URL_HERE') {
+    status.className = 'submit-status success';
+    status.textContent = '✅ Saved locally! (Add your Google Apps Script URL to enable Sheets sync.)';
+    btn.textContent = 'Submit Food Log →';
+    btn.disabled = false;
+    return;
+  }
+
+  try {
+    const res = await fetch(FOOD_APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    status.className = 'submit-status success';
+    status.textContent = '✅ Food log submitted to Google Sheets!';
+  } catch (err) {
+    status.className = 'submit-status error';
+    status.textContent = '❌ Failed to submit. Saved locally as backup.';
+  }
+
+  btn.textContent = 'Submit Food Log →';
   btn.disabled = false;
 }
 

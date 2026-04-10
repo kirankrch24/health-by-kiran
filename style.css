@@ -48,13 +48,14 @@ body {
 /* FORMS */
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 label { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
-input[type="text"], input[type="password"], input[type="date"] {
+input[type="text"], input[type="password"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
   width: 100%; padding: 12px 16px;
   border: 1.5px solid #e0e0e0; border-radius: 8px;
   font-family: inherit; font-size: 0.95rem; color: var(--text-dark);
   background: #fafafa; transition: var(--transition); outline: none;
 }
-input:focus { border-color: #000; background: #fff; }
+input:focus, select:focus, textarea:focus { border-color: #000; background: #fff; }
+textarea { resize: vertical; min-height: 80px; }
 
 /* BUTTONS */
 .btn {

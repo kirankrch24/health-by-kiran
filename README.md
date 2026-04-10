@@ -13,6 +13,7 @@ A lightweight, web-based daily habit tracker built to monitor progress for the *
   - Exercise
   - Study
   - Reading
+- **Food Eaten Log:** Keep track of your daily meals, timings, sources, and hunger levels with dynamic pricing fields for takeaways/restaurants.
 - **Google Sheets Sync:** Submits your daily logs directly to a Google Sheet using Google Apps Script.
 - **Local Backup:** Saves your daily logs and calculates your streak using the browser's `localStorage`, acting as a fallback if the Google Sheets submission fails.
 
@@ -29,10 +30,7 @@ A lightweight, web-based daily habit tracker built to monitor progress for the *
    git clone <your-github-repo-url>
    ```
 2. **Open the App:** Simply open `index.html` in any modern web browser. 
-3. **Login credentials:**
-   - **Username:** `admin`
-   - **Password:** `1234`
-   *(Note: You can change these inside `script.js`)*
+
 
 ## Setting up Google Sheets Sync
 
