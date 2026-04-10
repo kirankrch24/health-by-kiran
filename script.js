@@ -126,6 +126,38 @@ function updateProgress() {
 }
 
 // =====================
+// UI FEEDBACK & RESETS
+// =====================
+function showToast(message, type = 'success') {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${message}</span>`;
+  container.appendChild(toast);
+  
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 500);
+  }, 3500);
+}
+
+function resetChallengeForm() {
+  document.querySelectorAll('.task-item').forEach(el => el.classList.remove('done'));
+  document.querySelectorAll('.hidden-check').forEach(el => el.checked = false);
+  updateProgress();
+  const todayDateEl = document.getElementById('todayDate');
+  if (todayDateEl) todayDateEl.value = getTodayISO();
+}
+
+// =====================
 // SUBMIT TO GOOGLE SHEETS
 // =====================
 async function submitChallenge() {
@@ -143,7 +175,7 @@ async function submitChallenge() {
 
   btn.textContent = 'Submitting...';
   btn.disabled = true;
-  status.className = 'submit-status';
+  if (status) status.className = 'submit-status'; // Hide old inline status
 
   // Save to localStorage backup
   localStorage.setItem('last_log_' + data.date, JSON.stringify(data));
@@ -153,9 +185,9 @@ async function submitChallenge() {
   localStorage.setItem('streak_days', allKeys.length);
 
   if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-    status.className = 'submit-status success';
-    status.textContent = '✅ Saved locally! (Add your Google Apps Script URL to enable Sheets sync.)';
+    showToast('✅ Saved locally! (Add Google Sheets URL to sync)', 'success');
     btn.textContent = 'Submit Today\'s Log →';
+    resetChallengeForm();
     btn.disabled = false;
     return;
   }
@@ -167,11 +199,10 @@ async function submitChallenge() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    status.className = 'submit-status success';
-    status.textContent = '✅ Today\'s log submitted to Google Sheets!';
+    showToast('🎉 Awesome! Today\'s log is saved to Sheets.', 'success');
+    resetChallengeForm();
   } catch (err) {
-    status.className = 'submit-status error';
-    status.textContent = '❌ Failed to submit. Saved locally as backup.';
+    showToast('❌ Failed to submit. Saved locally as backup.', 'error');
   }
 
   btn.textContent = 'Submit Today\'s Log →';
@@ -181,6 +212,25 @@ async function submitChallenge() {
 // =====================
 // FOOD LOG
 // =====================
+function resetFoodForm() {
+  ['foodItem1', 'foodItem2', 'foodItem3', 'foodItem4', 'foodItem5', 'foodShop', 'foodPrice', 'foodPortion', 'foodNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const mealType = document.getElementById('foodMealType'); if (mealType) mealType.value = 'Breakfast';
+  const noItems = document.getElementById('noOfFoodItems'); if (noItems) noItems.value = '1';
+  toggleFoodItems();
+  const source = document.getElementById('foodSource'); if (source) source.value = 'Homemade';
+  togglePriceField();
+  const hunger = document.getElementById('foodHunger'); if (hunger) hunger.value = 'Medium';
+  const req = document.getElementById('foodRequired'); if (req) req.value = 'Yes';
+  const foodDateEl = document.getElementById('foodDate'); if (foodDateEl) foodDateEl.value = getTodayISO();
+  const foodTimeEl = document.getElementById('foodTime');
+  if (foodTimeEl) {
+    foodTimeEl.value = new Date().toTimeString().substring(0, 5);
+  }
+}
+
 function toggleFoodItems() {
   const count = parseInt(document.getElementById('noOfFoodItems')?.value || 1);
   for (let i = 1; i <= 5; i++) {
@@ -230,15 +280,15 @@ async function submitFoodLog() {
 
   btn.textContent = 'Submitting...';
   btn.disabled = true;
-  status.className = 'submit-status';
+  if (status) status.className = 'submit-status';
 
   // Save to localStorage backup
   localStorage.setItem('food_log_' + Date.now(), JSON.stringify(data));
 
   if (!FOOD_APPS_SCRIPT_URL || FOOD_APPS_SCRIPT_URL === 'YOUR_FOOD_GOOGLE_APPS_SCRIPT_URL_HERE') {
-    status.className = 'submit-status success';
-    status.textContent = '✅ Saved locally! (Add your Google Apps Script URL to enable Sheets sync.)';
+    showToast('✅ Saved locally! (Add Google Sheets URL to sync)', 'success');
     btn.textContent = 'Submit Food Log →';
+    resetFoodForm();
     btn.disabled = false;
     return;
   }
@@ -250,11 +300,10 @@ async function submitFoodLog() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    status.className = 'submit-status success';
-    status.textContent = '✅ Food log submitted to Google Sheets!';
+    showToast('🍽️ Delicious! Food log submitted successfully.', 'success');
+    resetFoodForm();
   } catch (err) {
-    status.className = 'submit-status error';
-    status.textContent = '❌ Failed to submit. Saved locally as backup.';
+    showToast('❌ Failed to submit. Saved locally as backup.', 'error');
   }
 
   btn.textContent = 'Submit Food Log →';
