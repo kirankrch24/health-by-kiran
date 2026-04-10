@@ -1,8 +1,8 @@
 // =====================
 // CONFIG
 // =====================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCHWtntMcdfK-btEnTeT4adoAxZN9dEpYFesF2SbWn-4to03OiaXXF3D5sFhhC4hyrdg/exec';
-const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRGeiqcoB53XCSYP-Gj8-DrmKwlUy9lojSBCevBnp-PgWk6IVMNHOz8dMYKVO1qlCMpQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6AoW4MHLPG_K2gXiuPHyKlcsCvWEqzm5GkjlEor1D2FQIFKZT9G6N6HhvAGPPEEXXDA/exec';
+const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTkaPFnoBZAVb4w1WU8eAROITLea2JyRyqiQhArcnRFnkp8i1wuBmcou5aXpPpLrrExQ/exec';
 
 const QUOTES = [
   { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
@@ -155,6 +155,8 @@ function resetChallengeForm() {
   updateProgress();
   const todayDateEl = document.getElementById('todayDate');
   if (todayDateEl) todayDateEl.value = getTodayISO();
+  const noteEl = document.getElementById('challengeNote');
+  if (noteEl) noteEl.value = '';
 }
 
 // =====================
@@ -171,6 +173,7 @@ async function submitChallenge() {
     exercise: document.getElementById('exercise')?.checked ? 'YES' : 'NO',
     study: document.getElementById('study')?.checked ? 'YES' : 'NO',
     reading: document.getElementById('reading')?.checked ? 'YES' : 'NO',
+    note: document.getElementById('challengeNote')?.value || ''
   };
 
   btn.textContent = 'Submitting...';
