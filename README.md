@@ -29,10 +29,6 @@ A lightweight, web-based daily habit tracker built to monitor progress for the *
    git clone <your-github-repo-url>
    ```
 2. **Open the App:** Simply open `index.html` in any modern web browser. 
-3. **Login credentials:**
-   - **Username:** `admin`
-   - **Password:** `1234`
-   *(Note: You can change these inside `script.js`)*
 
 ## Setting up Google Sheets Sync
 
