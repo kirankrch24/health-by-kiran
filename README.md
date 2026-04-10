@@ -31,7 +31,6 @@ A lightweight, web-based daily habit tracker built to monitor progress for the *
    ```
 2. **Open the App:** Simply open `index.html` in any modern web browser. 
 
-
 ## Setting up Google Sheets Sync
 
 To save data to Google Sheets:
