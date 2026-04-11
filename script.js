@@ -5,7 +5,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6AoW4MHLPG_K2
 const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTkaPFnoBZAVb4w1WU8eAROITLea2JyRyqiQhArcnRFnkp8i1wuBmcou5aXpPpLrrExQ/exec';
 const BODY_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9ZLRxo1N8ptv1dL91nlxrs78LP_FGq0bvHmVTEF0eTEDzu8suAHsIWep1rxM5QqEv/exec';
 const QUOTES = [
-  { text: "Comfort is the enemy of progress. If it's not hurting, you aren't changing. Get it done.", author: "Aristotle" }
+  { text: "Comfort is the enemy of progress. If it's not hurting, you aren't changing. JUST DO IT.", author: "The Grind ✔️" }
 ];
 
 async function hashString(str) {
