@@ -3,7 +3,7 @@
 // =====================
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6AoW4MHLPG_K2gXiuPHyKlcsCvWEqzm5GkjlEor1D2FQIFKZT9G6N6HhvAGPPEEXXDA/exec';
 const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTkaPFnoBZAVb4w1WU8eAROITLea2JyRyqiQhArcnRFnkp8i1wuBmcou5aXpPpLrrExQ/exec';
-
+const BODY_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9ZLRxo1N8ptv1dL91nlxrs78LP_FGq0bvHmVTEF0eTEDzu8suAHsIWep1rxM5QqEv/exec';
 const QUOTES = [
   { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
   { text: "We are what we repeatedly do. Excellence is not an act, but a habit.", author: "Aristotle" },
@@ -12,13 +12,26 @@ const QUOTES = [
   { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
 ];
 
-// =====================
-// LOGIN
-// =====================
-function handleLogin() {
+async function hashString(str) {
+  const msgUint8 = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function handleLogin() {
   const user = document.getElementById('username')?.value.trim();
   const pass = document.getElementById('password')?.value.trim();
-  if (user === 'admin' && pass === '1234') {
+  
+  if (!user || !pass) {
+    alert('Invalid Credentials. Please try again.');
+    return;
+  }
+  
+  const u = await hashString(user);
+  const p = await hashString(pass);
+  
+  if (u === 'ccbd0a7fa962bc1bd152984bfdaecf339b88231a0d013e927b764b744a9261fc' && p === '66372dabaca91e253afdbf588fdc32a44eed338b219cc164f26ad821ec992e1b') {
     sessionStorage.setItem('loggedIn', 'true');
     window.location.href = 'dashboard.html';
   } else {
@@ -33,8 +46,8 @@ function logout() {
 // =====================
 // AUTH GUARD
 // =====================
-(function() {
-  const protect = ['dashboard.html', '75hard.html', 'food.html'];
+(function () {
+  const protect = ['dashboard.html', '75hard.html', 'food.html', 'body.html'];
   const page = window.location.pathname.split('/').pop();
   if (protect.includes(page) && !sessionStorage.getItem('loggedIn')) {
     window.location.href = 'index.html';
@@ -47,7 +60,7 @@ function logout() {
 function toggleNav() {
   document.getElementById('navMenu')?.classList.toggle('open');
 }
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
   const menu = document.getElementById('navMenu');
   const toggle = document.querySelector('.nav-toggle');
   if (menu && toggle && !menu.contains(e.target) && !toggle.contains(e.target)) {
@@ -136,12 +149,12 @@ function showToast(message, type = 'success') {
     container.className = 'toast-container';
     document.body.appendChild(container);
   }
-  
+
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerHTML = `<span>${message}</span>`;
   container.appendChild(toast);
-  
+
   requestAnimationFrame(() => toast.classList.add('show'));
   setTimeout(() => {
     toast.classList.remove('show');
@@ -314,6 +327,152 @@ async function submitFoodLog() {
 }
 
 // Enter key on login
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
   if (e.key === 'Enter' && document.getElementById('username')) handleLogin();
 });
+
+// =====================
+// BODY METRICS LOG
+// =====================
+async function fetchLatestBodyMetrics() {
+  if (!BODY_APPS_SCRIPT_URL) return;
+  try {
+    // If URL is present, perform a GET request
+    const response = await fetch(BODY_APPS_SCRIPT_URL);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    if (data && data.weight && data.height) {
+      // Overwrite local storage with the cloud version
+      localStorage.setItem('current_weight', data.weight);
+      localStorage.setItem('current_height', data.height);
+      updateDashboardBodyMetrics(); // Update UI
+    }
+  } catch (err) {
+    console.error("Error fetching body metrics:", err);
+  }
+}
+
+function updateDashboardBodyMetrics() {
+  const weightStr = localStorage.getItem('current_weight');
+  const heightStr = localStorage.getItem('current_height');
+  
+  // BMI & New Micro Stats
+  const bmiDisplay = document.getElementById('currentBMIDisplay');
+  if (bmiDisplay && weightStr && heightStr) {
+    const weight = parseFloat(weightStr);
+    const heightM = parseFloat(heightStr) / 100;
+    const bmi = (weight / (heightM * heightM)).toFixed(1);
+    bmiDisplay.textContent = bmi;
+    
+    if (bmi < 18.5) bmiDisplay.style.color = "#ffb8b8";
+    else if (bmi >= 18.5 && bmi <= 24.9) bmiDisplay.style.color = "#b5e8c4";
+    else if (bmi >= 25 && bmi <= 29.9) bmiDisplay.style.color = "#ffd8b8";
+    else bmiDisplay.style.color = "#ff8888";
+  }
+
+  // Weight Goal Progress Bar
+  const dashWeightVal = document.getElementById('dashWeightVal');
+  const weightProgressBar = document.getElementById('weightProgressBar');
+  if (dashWeightVal && weightStr) {
+    const currentW = parseFloat(weightStr);
+    dashWeightVal.innerHTML = `${currentW} <span style="font-size: 0.8rem;">kg</span>`;
+    
+    // Calculate simple visually pleasing progress
+    // Assume start weight was around 120kg, target is 75kg
+    if (weightProgressBar) {
+      const target = 75;
+      const start = 120; // Hardcoded start for progress visual scaling
+      
+      let percentage = 0;
+      if (currentW <= target) {
+        percentage = 100;
+      } else if (currentW >= start) {
+        percentage = 5; // minimum visible bar
+      } else {
+        // e.g. 118 -> (120 - 118) / (120 - 75) = 2 / 45 = ~4.4%
+        percentage = ((start - currentW) / (start - target)) * 100;
+      }
+      
+      // Delay to allow CSS transition to happen smoothly on load
+      setTimeout(() => {
+        weightProgressBar.style.width = percentage + '%';
+      }, 100);
+    }
+  }
+}
+
+if (document.getElementById('dashWeightVal') || document.getElementById('currentBMIDisplay')) {
+  // First render purely from localStorage
+  updateDashboardBodyMetrics();
+  // Then kick off background fetch to ensure it is in sync with sheets
+  fetchLatestBodyMetrics();
+}
+
+function resetBodyForm() {
+  const dt = document.getElementById('bodyDate'); if (dt) dt.value = getTodayISO();
+  const tm = document.getElementById('bodyTime'); if (tm) tm.value = new Date().toTimeString().substring(0, 5);
+  const wt = document.getElementById('bodyWeight'); if (wt) wt.value = '';
+}
+
+async function submitBodyLog() {
+  const btn = document.getElementById('submitBodyBtn');
+  const wtEl = document.getElementById('bodyWeight');
+  const htEl = document.getElementById('bodyHeight');
+
+  if (!wtEl?.value || !htEl?.value) {
+    showToast('❌ Please enter both weight and height.', 'error');
+    return;
+  }
+
+  const data = {
+    logType: 'BODY_METRICS',
+    date: document.getElementById('bodyDate')?.value || getTodayISO(),
+    time: document.getElementById('bodyTime')?.value || '',
+    weight: wtEl.value,
+    height: htEl.value
+  };
+
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  localStorage.setItem('current_weight', data.weight);
+  localStorage.setItem('current_height', data.height);
+  localStorage.setItem('body_log_' + Date.now(), JSON.stringify(data));
+
+  if (!BODY_APPS_SCRIPT_URL || BODY_APPS_SCRIPT_URL === '') {
+    showToast('✅ Saved locally! (Add Google Sheets URL to sync)', 'success');
+    setTimeout(() => {
+      btn.textContent = 'Save Body Metrics →';
+      btn.disabled = false;
+      resetBodyForm();
+    }, 1000);
+    return;
+  }
+
+  try {
+    await fetch(BODY_APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    showToast('⚖️ Body metrics successfully saved to Sheets.', 'success');
+  } catch (err) {
+    showToast('❌ Failed to push. Saved locally as backup.', 'error');
+  }
+
+  setTimeout(() => {
+    btn.textContent = 'Save Body Metrics →';
+    btn.disabled = false;
+    resetBodyForm();
+  }, 1000);
+}
+
+// Body Form init
+const bodyDateEl = document.getElementById('bodyDate');
+if (bodyDateEl) bodyDateEl.value = getTodayISO();
+const bodyTimeEl = document.getElementById('bodyTime');
+if (bodyTimeEl) {
+  bodyTimeEl.value = new Date().toTimeString().substring(0, 5);
+}

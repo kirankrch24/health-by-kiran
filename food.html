@@ -3,41 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Food Log - Health by Kiran Kumar. Track every meal securely." />
   <title>Food Eaten Log – Health by Kiran Kumar</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body class="dashboard-body">
 
-  <!-- Dashboard Header -->
   <header class="dashboard-header">
     <h1>Health by Kiran Kumar</h1>
-    <div class="nav-dropdown">
-      <button class="nav-toggle" onclick="toggleNav()">☰ Menu</button>
-      <div class="dropdown-menu" id="navMenu">
-        <a href="dashboard.html">🏠 Home</a>
-        <a href="75hard.html">💪 75 Hard Challenge</a>
-        <a href="food.html" class="active">🍽️ Food Eaten Log</a>
-        <a href="index.html" onclick="logout()">🚪 Logout</a>
+    <nav class="nav-dropdown" aria-label="Main navigation">
+      <button class="nav-toggle" onclick="toggleNav()" aria-expanded="false" aria-controls="navMenu">☰ Menu</button>
+      <div class="dropdown-menu" id="navMenu" role="menu">
+        <a href="dashboard.html" role="menuitem">🏠 Home</a>
+        <a href="75hard.html" role="menuitem">💪 75 Hard Challenge</a>
+        <a href="food.html" class="active" role="menuitem">🍽️ Food Eaten Log</a>
+        <a href="body.html" role="menuitem">⚖️ Body Metrics Log</a>
+        <a href="index.html" onclick="logout()" role="menuitem">🚪 Logout</a>
       </div>
-    </div>
+    </nav>
   </header>
   
-  <div class="dashboard-content">
-    <div class="challenge-intro" style="margin-bottom: 20px;">
+  <main class="dashboard-content pt-1">
+    <div class="challenge-intro mb-5">
       <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">🍽️ Food Eaten Log</h2>
       <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Track your meals, portions, and hunger levels.</p>
     </div>
 
-    <div class="card" style="border:1.5px solid #e8e8e8;">
+    <section class="card" style="border:1.5px solid #e8e8e8;" aria-label="Food Entry Form">
       <div class="form-group">
         <label for="foodDate">Date</label>
-        <input type="date" id="foodDate" style="width: 100% !important; max-width: 100% !important; min-width: 100% !important; box-sizing: border-box !important; -webkit-appearance: none !important; appearance: none !important;">
+        <input type="date" id="foodDate">
       </div>
       
       <div class="form-group">
         <label for="foodTime">Time</label>
-        <input type="time" id="foodTime" style="width: 100% !important; max-width: 100% !important; min-width: 100% !important; box-sizing: border-box !important; -webkit-appearance: none !important; appearance: none !important;">
+        <input type="time" id="foodTime">
       </div>
   
   <div class="form-group">
@@ -134,10 +135,10 @@
         <button class="btn" id="submitFoodBtn" onclick="submitFoodLog()">Submit Food Log →</button>
         <div class="submit-status" id="submitFoodStatus"></div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <footer style="background:#000;color:rgba(255,255,255,0.35);margin-top:40px;">Built with discipline by Kiran Kumar</footer>
+  <footer>Built with discipline by Kiran Kumar</footer>
 
   <script src="script.js"></script>
 </body>

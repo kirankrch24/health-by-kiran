@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Body Metrics - Health by Kiran Kumar. Track weight progress smoothly." />
+  <title>Body Metrics Log – Health by Kiran Kumar</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="dashboard-body">
+
+  <header class="dashboard-header">
+    <h1>Health by Kiran Kumar</h1>
+    <nav class="nav-dropdown" aria-label="Main navigation">
+      <button class="nav-toggle" onclick="toggleNav()" aria-expanded="false" aria-controls="navMenu">☰ Menu</button>
+      <div class="dropdown-menu" id="navMenu" role="menu">
+        <a href="dashboard.html" role="menuitem">🏠 Home</a>
+        <a href="75hard.html" role="menuitem">💪 75 Hard Challenge</a>
+        <a href="food.html" role="menuitem">🍽️ Food Eaten Log</a>
+        <a href="body.html" class="active" role="menuitem">⚖️ Body Metrics Log</a>
+        <a href="index.html" onclick="logout()" role="menuitem">🚪 Logout</a>
+      </div>
+    </nav>
+  </header>
+  
+  <main class="dashboard-content pt-1">
+    <div class="challenge-intro" style="margin-bottom: 20px;">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">⚖️ Body Metrics Log</h2>
+      <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Track your weight and height to monitor your BMI and progress towards your 75kg target.</p>
+    </div>
+
+    <div class="card" style="border:1.5px solid #e8e8e8;">
+      <div class="form-group">
+        <label for="bodyDate">Date</label>
+        <input type="date" id="bodyDate" style="width: 100% !important; max-width: 100% !important; min-width: 100% !important; box-sizing: border-box !important; -webkit-appearance: none !important; appearance: none !important;">
+      </div>
+      
+      <div class="form-group">
+        <label for="bodyTime">Time</label>
+        <input type="time" id="bodyTime" style="width: 100% !important; max-width: 100% !important; min-width: 100% !important; box-sizing: border-box !important; -webkit-appearance: none !important; appearance: none !important;">
+      </div>
+      
+      <div class="form-group">
+        <label for="bodyWeight">Weight (Kgs)</label>
+        <input type="number" id="bodyWeight" step="0.1" placeholder="e.g. 80.5">
+      </div>
+      
+      <div class="form-group">
+        <label for="bodyHeight">Height (cm)</label>
+        <input type="number" id="bodyHeight" placeholder="e.g. 175">
+      </div>
+      
+      <div class="submit-area" style="margin-top: 20px; padding-bottom: 0;">
+        <button class="btn" id="submitBodyBtn" onclick="submitBodyLog()">Save Body Metrics →</button>
+        <div class="submit-status" id="submitBodyStatus"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Built with discipline by Kiran Kumar</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

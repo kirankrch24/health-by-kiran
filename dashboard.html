@@ -1,90 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Dashboard - Health by Kiran Kumar. Track your 75 Hard progress, log food, and master body metrics." />
   <title>Dashboard – Health by Kiran Kumar</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
 </head>
+
 <body class="dashboard-body">
 
   <!-- Dashboard Header -->
   <header class="dashboard-header">
     <h1>Health by Kiran Kumar</h1>
-    <div class="nav-dropdown">
-      <button class="nav-toggle" onclick="toggleNav()">☰ Menu</button>
-      <div class="dropdown-menu" id="navMenu">
-        <a href="dashboard.html" class="active">🏠 Home</a>
-        <a href="75hard.html">💪 75 Hard Challenge</a>
-        <a href="food.html">🍽️ Food Eaten Log</a>
-        <a href="index.html" onclick="logout()">🚪 Logout</a>
+    <nav class="nav-dropdown" aria-label="Main navigation">
+      <button class="nav-toggle" onclick="toggleNav()" aria-expanded="false" aria-controls="navMenu">☰ Menu</button>
+      <div class="dropdown-menu" id="navMenu" role="menu">
+        <a href="dashboard.html" class="active" role="menuitem">🏠 Home</a>
+        <a href="75hard.html" role="menuitem">💪 75 Hard Challenge</a>
+        <a href="food.html" role="menuitem">🍽️ Food Eaten Log</a>
+        <a href="body.html" role="menuitem">⚖️ Body Metrics Log</a>
+        <a href="index.html" onclick="logout()" role="menuitem">🚪 Logout</a>
       </div>
-    </div>
+    </nav>
   </header>
 
-  <!-- Welcome Section -->
-  <div class="welcome-section">
+  <!-- Premium Welcome Section -->
+  <section class="premium-welcome" aria-label="Welcome">
     <div class="welcome-text">Good day,</div>
-    <div class="welcome-name">Welcome, Kiran 👋</div>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-value">2,450</div>
-        <div class="stat-label">Calories Burned</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">45m</div>
-        <div class="stat-label">Workout Time</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="streakDays">0</div>
-        <div class="stat-label">Streak Days</div>
-      </div>
-    </div>
-  </div>
+    <div class="welcome-name" style="margin-bottom: 0;">Kiran 👋</div>
+  </section>
 
   <!-- Dashboard Content -->
-  <div class="dashboard-content">
+  <main class="dashboard-content pt-1">
 
-    <p class="section-title">Quick Actions</p>
-    <a href="75hard.html" style="text-decoration:none;">
-      <div class="card" style="display:flex;align-items:center;gap:16px;padding:20px;cursor:pointer;border:1.5px solid #e8e8e8;">
-        <div style="width:48px;height:48px;background:#000;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">💪</div>
-        <div>
-          <div style="font-weight:600;font-size:0.95rem;">75 Hard Challenge</div>
-          <div style="font-size:0.8rem;color:#888;margin-top:2px;">Log today's tasks & habits</div>
+    <div class="top-dashboard-grid">
+      <!-- CORE GOALS -->
+      <div class="core-goals-wrapper">
+        <div class="section-tag">Core Target Goals</div>
+        <div class="goals-container" style="margin-top: 16px;">
+          
+          <!-- Weight Goal -->
+          <div class="premium-card weight-card">
+            <div class="card-bg-glow"></div>
+            <div class="goal-header">
+              <div class="goal-icon-box">⚖️</div>
+              <div>
+                <div class="goal-title-text">Weight Target</div>
+                <div class="goal-subtitle">Shredding to 75 Kg</div>
+              </div>
+            </div>
+            <div class="goal-content">
+              <div class="weight-stats">
+                <div>
+                  <div class="weight-current" id="dashWeightVal">-- kg</div>
+                  <div style="display:inline-block; margin-top: 6px; padding: 4px 12px; border-radius: 20px; background: rgba(214, 51, 108, 0.08); font-size: 0.75rem; font-weight: 700; color: #d6336c; border: 1px solid rgba(214, 51, 108, 0.15);">BMI <span id="currentBMIDisplay">--</span></div>
+                </div>
+                <div class="weight-target">Goal: 75 kg</div>
+              </div>
+              <div class="w-progress-track">
+                <div class="w-progress-fill" id="weightProgressBar"></div>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <div style="margin-left:auto;color:#bbb;font-size:1.2rem;">›</div>
+      </div>
+
+      <!-- MOTIVATIONAL QUOTE -->
+      <div class="quote-wrapper">
+        <div class="section-tag">Motivational Quote</div>
+        <section class="card text-white quote-card-display" style="background:#000; margin-top: 16px;">
+          <div style="font-size:1.05rem;font-weight:500;line-height:1.5;" id="quoteText"></div>
+          <div style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:4px;" id="quoteAuthor"></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="section-tag">Quick Actions</div>
+
+    <a href="75hard.html" class="action-link" aria-label="75 Hard Challenge Log">
+      <div class="card action-card">
+        <div class="action-icon" aria-hidden="true">💪</div>
+        <div class="action-text-box">
+          <div class="action-title">75 Hard Challenge</div>
+          <div class="action-desc">Log today's tasks & habits</div>
+        </div>
+        <div class="action-arrow" aria-hidden="true">›</div>
       </div>
     </a>
 
-    <a href="food.html" style="text-decoration:none;">
-      <div class="card" style="display:flex;align-items:center;gap:16px;padding:20px;cursor:pointer;border:1.5px solid #e8e8e8;margin-top:12px;">
-        <div style="width:48px;height:48px;background:#000;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🍽️</div>
-        <div>
-          <div style="font-weight:600;font-size:0.95rem;">Food Eaten Log</div>
-          <div style="font-size:0.8rem;color:#888;margin-top:2px;">Track your meals & hunger</div>
+    <a href="food.html" class="action-link" aria-label="Food Eaten Log">
+      <div class="card action-card">
+        <div class="action-icon" aria-hidden="true">🍽️</div>
+        <div class="action-text-box">
+          <div class="action-title">Food Eaten Log</div>
+          <div class="action-desc">Track your meals & hunger</div>
         </div>
-        <div style="margin-left:auto;color:#bbb;font-size:1.2rem;">›</div>
+        <div class="action-arrow" aria-hidden="true">›</div>
       </div>
     </a>
 
-    <p class="section-title">Today's Date</p>
-    <div class="card" style="border:1.5px solid #e8e8e8;">
-      <div style="font-size:0.82rem;color:#888;margin-bottom:4px;">Current Date</div>
+    <a href="body.html" class="action-link" aria-label="Body Metrics Log">
+      <div class="card action-card">
+        <div class="action-icon" aria-hidden="true">⚖️</div>
+        <div class="action-text-box">
+          <div class="action-title">Body Metrics Log</div>
+          <div class="action-desc">Track your weight & target 75kg</div>
+        </div>
+        <div class="action-arrow" aria-hidden="true">›</div>
+      </div>
+    </a>
+
+    <h2 class="section-title">Today's Date</h2>
+    <section class="card mb-4">
+      <div class="action-desc">Current Date</div>
       <div style="font-size:1rem;font-weight:600;" id="dashDate"></div>
-    </div>
+    </section>
 
-    <p class="section-title">Motivational Quote</p>
-    <div class="card" style="border:1.5px solid #e8e8e8;background:#000;color:#fff;">
-      <div style="font-size:1.05rem;font-weight:500;line-height:1.5;" id="quoteText"></div>
-      <div style="font-size:0.78rem;color:#888;margin-top:8px;" id="quoteAuthor"></div>
-    </div>
 
-  </div>
+  </main>
 
-  <footer style="background:#000;color:rgba(255,255,255,0.35);">Built with discipline by Kiran Kumar</footer>
+  <footer>Built with discipline by Kiran Kumar</footer>
 
   <script src="script.js"></script>
 </body>
+
 </html>
