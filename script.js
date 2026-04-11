@@ -20,7 +20,7 @@ async function hashString(str) {
 }
 
 async function handleLogin() {
-  const user = document.getElementById('username')?.value.trim();
+  const user = document.getElementById('username')?.value.trim().toLowerCase();
   const pass = document.getElementById('password')?.value.trim();
   
   if (!user || !pass) {
