@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Dashboard - Health by Kiran Kumar. Track your 75 Hard progress, log food, and master body metrics." />
+  <meta name="description"
+    content="Dashboard - Health by Kiran Kumar. Track your 75 Hard progress, log food, and master body metrics." />
   <title>Dashboard – Health by Kiran Kumar</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -29,9 +30,13 @@
   </header>
 
   <!-- Premium Welcome Section -->
-  <section class="premium-welcome" aria-label="Welcome">
-    <div class="welcome-text" style="font-size: 0.95rem; font-weight: 500; letter-spacing: 1px; color: rgba(255,255,255,0.7);">WORK UNTIL IT’S DONE,</div>
-    <div class="welcome-name" style="margin-bottom: 0; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; font-size: 1.7rem;">KIRAN.</div>
+  <section class="premium-welcome" aria-label="Welcome" style="position: relative;">
+    <div id="dayBadge" style="position: absolute; top: 28px; right: 20px; font-size: 0.75rem; background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(255,255,255,0.25); text-transform: uppercase;">DAY X OF 75</div>
+    <div class="welcome-text"
+      style="font-size: 0.95rem; font-weight: 500; letter-spacing: 1px; color: rgba(255,255,255,0.7);">Work Until it's
+      Done,</div>
+    <div class="welcome-name" style="margin-bottom: 0; letter-spacing: 1.5px; font-weight: 800; font-size: 1.7rem;">
+      Hey Kiran 👋,<br />Just Do It ✔️</div>
   </section>
 
   <!-- Dashboard Content -->
@@ -42,7 +47,7 @@
       <div class="core-goals-wrapper">
         <div class="section-tag">Core Target Goals</div>
         <div class="goals-container" style="margin-top: 16px;">
-          
+
           <!-- Weight Goal -->
           <div class="premium-card weight-card">
             <div class="card-bg-glow"></div>
@@ -50,22 +55,29 @@
               <div class="goal-icon-box">⚖️</div>
               <div>
                 <div class="goal-title-text">Weight Target</div>
-                <div class="goal-subtitle" id="heroDistanceText" style="text-transform: uppercase; font-weight: 700; color: #ff7eb3; font-size: 0.8rem; margin-top: 4px;">-- KG REMAINING. NO EXCUSES.</div>
+                <div class="goal-subtitle" id="heroDistanceText"
+                  style="text-transform: uppercase; font-weight: 700; color: #ff7eb3; font-size: 0.8rem; margin-top: 4px;">
+                  -- KG REMAINING. NO EXCUSES.</div>
               </div>
             </div>
             <div class="goal-content">
               <div class="weight-stats">
                 <div>
                   <div class="weight-current" id="dashWeightVal">-- kg</div>
-                  <div style="display:inline-block; margin-top: 6px; padding: 4px 12px; border-radius: 20px; background: rgba(214, 51, 108, 0.15); font-size: 0.75rem; font-weight: 700; color: #ff7eb3; border: 1px solid rgba(255, 126, 179, 0.3);">BMI <span id="currentBMIDisplay">--</span></div>
+                  <div
+                    style="display:inline-block; margin-top: 6px; padding: 4px 12px; border-radius: 20px; background: rgba(214, 51, 108, 0.15); font-size: 0.75rem; font-weight: 700; color: #ff7eb3; border: 1px solid rgba(255, 126, 179, 0.3);">
+                    BMI <span id="currentBMIDisplay">--</span></div>
                 </div>
-                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center;">
+                <div
+                  style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center;">
                   <div class="weight-target" style="padding-bottom: 0;">Goal: 75 kg</div>
                 </div>
               </div>
               <div class="w-progress-track" style="position: relative; height: 18px;">
                 <div class="w-progress-fill" id="weightProgressBar"></div>
-                <div id="dashPercentVal" style="position: absolute; width: 100%; text-align: center; top: 0; font-size: 0.75rem; color: #fff; font-weight: 800; line-height: 18px; text-shadow: 0px 1px 2px rgba(0,0,0,0.5);">0%</div>
+                <div id="dashPercentVal"
+                  style="position: absolute; width: 100%; text-align: center; top: 0; font-size: 0.75rem; color: #fff; font-weight: 800; line-height: 18px; text-shadow: 0px 1px 2px rgba(0,0,0,0.5);">
+                  0%</div>
               </div>
             </div>
           </div>
