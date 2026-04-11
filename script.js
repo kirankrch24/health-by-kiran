@@ -5,11 +5,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6AoW4MHLPG_K2
 const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTkaPFnoBZAVb4w1WU8eAROITLea2JyRyqiQhArcnRFnkp8i1wuBmcou5aXpPpLrrExQ/exec';
 const BODY_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9ZLRxo1N8ptv1dL91nlxrs78LP_FGq0bvHmVTEF0eTEDzu8suAHsIWep1rxM5QqEv/exec';
 const QUOTES = [
-  { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
-  { text: "We are what we repeatedly do. Excellence is not an act, but a habit.", author: "Aristotle" },
-  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-  { text: "Don't stop when you're tired. Stop when you're done.", author: "Unknown" },
-  { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+  { text: "Comfort is the enemy of progress. If it's not hurting, you aren't changing. Get it done.", author: "Aristotle" }
 ];
 
 async function hashString(str) {
@@ -396,11 +392,11 @@ function updateDashboardBodyMetrics() {
         if (percentage > 100) percentage = 100;
       }
       
-      const distanceEl = document.getElementById('dashDistance');
+      const distanceEl = document.getElementById('heroDistanceText');
       if (distanceEl) {
         let diff = (currentW - target).toFixed(1);
         if (diff < 0) diff = 0;
-        distanceEl.innerText = `${diff} kg remaining`;
+        distanceEl.innerText = `${diff} KG REMAINING. NO EXCUSES.`;
       }
       
       const ptEl = document.getElementById('dashPercentVal');
@@ -483,12 +479,7 @@ async function submitBodyLog() {
   }, 1000);
 }
 
-// Quick Action Toggle Checkmark Logic
-function toggleActionStatus(e, element) {
-  e.preventDefault();
-  e.stopPropagation();
-  element.classList.toggle('done');
-}
+
 
 // Body Form init
 const bodyDateEl = document.getElementById('bodyDate');

@@ -30,8 +30,8 @@
 
   <!-- Premium Welcome Section -->
   <section class="premium-welcome" aria-label="Welcome">
-    <div class="welcome-text">Good day,</div>
-    <div class="welcome-name" style="margin-bottom: 0;">Kiran 👋</div>
+    <div class="welcome-text" style="font-size: 0.95rem; font-weight: 500; letter-spacing: 1px; color: rgba(255,255,255,0.7);">WORK UNTIL IT’S DONE,</div>
+    <div class="welcome-name" style="margin-bottom: 0; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; font-size: 1.7rem;">KIRAN.</div>
   </section>
 
   <!-- Dashboard Content -->
@@ -50,7 +50,7 @@
               <div class="goal-icon-box">⚖️</div>
               <div>
                 <div class="goal-title-text">Weight Target</div>
-                <div class="goal-subtitle">Shredding to 75 Kg</div>
+                <div class="goal-subtitle" id="heroDistanceText" style="text-transform: uppercase; font-weight: 700; color: #ff7eb3; font-size: 0.8rem; margin-top: 4px;">-- KG REMAINING. NO EXCUSES.</div>
               </div>
             </div>
             <div class="goal-content">
@@ -59,9 +59,8 @@
                   <div class="weight-current" id="dashWeightVal">-- kg</div>
                   <div style="display:inline-block; margin-top: 6px; padding: 4px 12px; border-radius: 20px; background: rgba(214, 51, 108, 0.15); font-size: 0.75rem; font-weight: 700; color: #ff7eb3; border: 1px solid rgba(255, 126, 179, 0.3);">BMI <span id="currentBMIDisplay">--</span></div>
                 </div>
-                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center;">
                   <div class="weight-target" style="padding-bottom: 0;">Goal: 75 kg</div>
-                  <div id="dashDistance" style="font-size: 0.75rem; font-weight: 600; color: #ff7eb3; margin-top: 4px;">-- kg remaining</div>
                 </div>
               </div>
               <div class="w-progress-track" style="position: relative; height: 18px;">
@@ -93,7 +92,7 @@
           <div class="action-title">75 Hard Challenge</div>
           <div class="action-desc">Log today's tasks & habits</div>
         </div>
-        <div class="action-status-circle" onclick="toggleActionStatus(event, this)" aria-hidden="true"></div>
+        <div class="action-arrow" aria-hidden="true">›</div>
       </div>
     </a>
 
@@ -104,7 +103,7 @@
           <div class="action-title">Food Eaten Log</div>
           <div class="action-desc">Track your meals & hunger</div>
         </div>
-        <div class="action-status-circle" onclick="toggleActionStatus(event, this)" aria-hidden="true"></div>
+        <div class="action-arrow" aria-hidden="true">›</div>
       </div>
     </a>
 
@@ -115,7 +114,7 @@
           <div class="action-title">Body Metrics Log</div>
           <div class="action-desc">Track your weight & target 75kg</div>
         </div>
-        <div class="action-status-circle" onclick="toggleActionStatus(event, this)" aria-hidden="true"></div>
+        <div class="action-arrow" aria-hidden="true">›</div>
       </div>
     </a>
 
