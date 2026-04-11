@@ -392,6 +392,20 @@ function updateDashboardBodyMetrics() {
       } else {
         // e.g. 118 -> (120 - 118) / (120 - 75) = 2 / 45 = ~4.4%
         percentage = ((start - currentW) / (start - target)) * 100;
+        if (percentage < 0) percentage = 0;
+        if (percentage > 100) percentage = 100;
+      }
+      
+      const distanceEl = document.getElementById('dashDistance');
+      if (distanceEl) {
+        let diff = (currentW - target).toFixed(1);
+        if (diff < 0) diff = 0;
+        distanceEl.innerText = `${diff} kg remaining`;
+      }
+      
+      const ptEl = document.getElementById('dashPercentVal');
+      if (ptEl) {
+        ptEl.innerText = `${Math.round(percentage)}%`;
       }
       
       // Delay to allow CSS transition to happen smoothly on load
@@ -467,6 +481,13 @@ async function submitBodyLog() {
     btn.disabled = false;
     resetBodyForm();
   }, 1000);
+}
+
+// Quick Action Toggle Checkmark Logic
+function toggleActionStatus(e, element) {
+  e.preventDefault();
+  e.stopPropagation();
+  element.classList.toggle('done');
 }
 
 // Body Form init
