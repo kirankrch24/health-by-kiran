@@ -112,16 +112,18 @@ footer { background: #000; text-align: center; padding: 20px; margin-top: 40px; 
 /* DASHBOARD CONTENT */
 .dashboard-content { padding: 20px; max-width: 900px; margin: 0 auto; flex: 1; width: 100%; }
 
-/* TOP DASHBOARD GRID */
-.top-dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 24px; }
-.core-goals-wrapper, .quote-wrapper { display: flex; flex-direction: column; height: 100%; }
-.quote-wrapper .section-title { margin-top: 0 !important; }
-.goals-container { flex: 1; display: flex !important; flex-direction: column; margin-top: 16px !important; }
-.weight-card { flex: 1; display: flex !important; flex-direction: column; justify-content: center; }
-.quote-card-display { flex: 1; display: flex !important; flex-direction: column; justify-content: center; margin-bottom: 0 !important; margin-top: 16px !important; }
-@media (min-width: 768px) {
-  .top-dashboard-grid { grid-template-columns: 1fr 1fr; align-items: stretch; }
+/* THREE BLOCK GRID */
+.three-block-grid { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: stretch; }
+@media (min-width: 1024px) {
+  .three-block-grid { grid-template-columns: repeat(3, 1fr); }
 }
+@media (min-width: 768px) and (max-width: 1023px) {
+  .three-block-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.weight-card, .challenge-progress-card, .quote-card { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+.challenge-progress-card { animation-delay: 0.8s; }
+.quote-card { animation-delay: 1.6s; }
 
 .section-title { font-size: 0.9rem; font-weight: 600; color: #333; margin: 22px 0 12px; }
 

@@ -99,11 +99,32 @@ const todayDateEl = document.getElementById('todayDate');
 if (todayDateEl) todayDateEl.value = getTodayISO();
 
 const dayBadge = document.getElementById('dayBadge');
-if (dayBadge) {
+if (dayBadge || document.getElementById('dash75HardCurrentDay')) {
   const challengeStartDate = '2026-04-13';
   localStorage.setItem('challenge_start', challengeStartDate); // Keep localStorage consistent
   const diff = Math.floor((new Date() - new Date(challengeStartDate)) / (1000 * 60 * 60 * 24)) + 1;
-  dayBadge.textContent = `Day ${diff} of 75`;
+  
+  if (dayBadge) {
+    dayBadge.textContent = `Day ${diff} of 75`;
+  }
+  
+  // Dashboard Visual Progress Bar
+  const dashCurrentDay = document.getElementById('dash75HardCurrentDay');
+  if (dashCurrentDay) {
+    // clamp diff between 0 and 75 so the UI doesn't break
+    const safeDiff = Math.max(0, Math.min(75, diff)); 
+    const remaining = 75 - safeDiff;
+    
+    dashCurrentDay.textContent = `Day ${safeDiff}`;
+    document.getElementById('dash75HardDaysLeft').textContent = `${remaining} DAYS REMAINING. NO EXCUSES.`;
+    
+    const percentage = (safeDiff / 75) * 100;
+    document.getElementById('dash75HardPercentVal').textContent = `${Math.round(percentage)}%`;
+    
+    setTimeout(() => {
+      document.getElementById('dash75HardProgressBar').style.width = percentage + '%';
+    }, 100);
+  }
 }
 
 // Food Log init
