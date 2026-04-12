@@ -44,11 +44,8 @@
   <!-- Dashboard Content -->
   <main class="dashboard-content pt-1">
 
-    <div class="top-dashboard-grid">
-      <!-- CORE GOALS -->
-      <div class="core-goals-wrapper">
-        <div class="section-tag">Core Target Goals</div>
-        <div class="goals-container" style="margin-top: 16px;">
+    <div class="section-tag" style="margin-top: 16px;">Core Target Goals</div>
+    <div class="three-block-grid" style="margin-top: 16px; margin-bottom: 30px;">
 
           <!-- Weight Goal -->
           <div class="premium-card weight-card">
@@ -84,17 +81,52 @@
             </div>
           </div>
 
+          <!-- 75 Hard Goal -->
+          <div class="premium-card challenge-progress-card">
+            <div class="card-bg-glow" style="background: radial-gradient(100% 100% at 50% 0%, rgba(93, 66, 255, 0.25) 0%, transparent 100%);"></div>
+            <div class="goal-header">
+              <div class="goal-icon-box" style="background: rgba(93, 66, 255, 0.15); color: #b6adff; border-color: rgba(93, 66, 255, 0.3);">💪</div>
+              <div>
+                <div class="goal-title-text">75 Hard Challenge</div>
+                <div class="goal-subtitle" id="dash75HardDaysLeft"
+                  style="font-weight: 700; color: #b6adff; font-size: 0.8rem; margin-top: 4px;">
+                  -- DAYS REMAINING. NO EXCUSES.</div>
+              </div>
+            </div>
+            <div class="goal-content">
+              <div class="weight-stats">
+                <div>
+                  <div class="weight-current" id="dash75HardCurrentDay" style="color: #fff;">Day --</div>
+                </div>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center;">
+                  <div class="weight-target" style="padding-bottom: 0;">Goal: 75 Days</div>
+                </div>
+              </div>
+              <div class="w-progress-track" style="position: relative; height: 18px; background: rgba(93, 66, 255, 0.1);">
+                <div class="w-progress-fill" id="dash75HardProgressBar" style="background: linear-gradient(90deg, #5d42ff, #8e7aff); box-shadow: 0 0 10px rgba(93, 66, 255, 0.5); width: 0%;"></div>
+                <div id="dash75HardPercentVal"
+                  style="position: absolute; width: 100%; text-align: center; top: 0; font-size: 0.75rem; color: #fff; font-weight: 800; line-height: 18px; text-shadow: 0px 1px 2px rgba(0,0,0,0.5);">
+                  0%</div>
+              </div>
+            </div>
+          </div>
+
+      <!-- Motivational Quote -->
+      <div class="premium-card quote-card">
+        <div class="card-bg-glow" style="background: radial-gradient(100% 100% at 50% 0%, rgba(253, 160, 133, 0.25) 0%, transparent 100%);"></div>
+        <div class="goal-header">
+          <div class="goal-icon-box" style="background: rgba(253, 160, 133, 0.15); color: #fc8966; border-color: rgba(253, 160, 133, 0.3);">💡</div>
+          <div>
+            <div class="goal-title-text">Daily Motivation</div>
+            <div class="goal-subtitle" style="font-weight: 700; color: #fc8966; font-size: 0.8rem; margin-top: 4px;">FEED YOUR MIND.</div>
+          </div>
+        </div>
+        <div class="goal-content" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+          <div style="font-size:1.05rem;font-weight:600;line-height:1.45;color:#111; margin-top: 14px;" id="quoteText"></div>
+          <div style="font-size:0.85rem;color:#888;margin-top:8px;font-style: italic; font-weight: 600;" id="quoteAuthor"></div>
         </div>
       </div>
 
-      <!-- MOTIVATIONAL QUOTE -->
-      <div class="quote-wrapper">
-        <div class="section-tag">Motivational Quote</div>
-        <section class="card quote-card-display" style="margin-top: 16px;">
-          <div style="font-size:1.05rem;font-weight:500;line-height:1.5;color:#111;" id="quoteText"></div>
-          <div style="font-size:0.85rem;color:#666;margin-top:4px;" id="quoteAuthor"></div>
-        </section>
-      </div>
     </div>
 
     <div class="section-tag">Quick Actions</div>
@@ -143,7 +175,7 @@
 
   <footer>Built with discipline by Kiran Kumar</footer>
 
-  <script src="script.js?v=2"></script>
+  <script src="script.js?v=3"></script>
 </body>
 
 </html>
