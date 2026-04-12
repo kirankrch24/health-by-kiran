@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="75 Hard Challenge Tracker - Health by Kiran Kumar. Track your 5 daily requirements efficiently." />
+  <meta name="description"
+    content="75 Hard Challenge Tracker - Health by Kiran Kumar. Track your 5 daily requirements efficiently." />
   <title>75 Hard – Health by Kiran Kumar</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
 </head>
+
 <body class="dashboard-body">
 
   <header class="dashboard-header">
@@ -87,7 +91,7 @@
         <input type="checkbox" class="hidden-check" id="study" name="study" />
         <div class="task-checkbox"></div>
         <div class="task-info">
-          <div class="task-name">📡 CCNA (90 mins Study)</div>
+          <div class="task-name">📡 CCNA (60 mins Study)</div>
           <div class="task-desc">Network certifications & growth</div>
         </div>
       </div>
@@ -103,10 +107,27 @@
 
     </div>
 
+    <!-- Selfie Upload Block -->
+    <div class="selfie-block" onclick="document.getElementById('selfieUpload').click()"
+      style="margin-top: 20px; padding: 15px; background: rgba(93, 66, 255, 0.1); border: 1px dashed rgba(93, 66, 255, 0.5); border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 2rem;">📸</div>
+      <div>
+        <div style="font-weight: 600; font-size: 1rem;">Take Daily Selfie</div>
+        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Tap here to take or upload your progress picture
+        </div>
+      </div>
+    </div>
+
+    <input type="file" id="selfieUpload" accept="image/*" capture="user" style="display: none;">
+    <div id="selfiePreview" style="margin-top: 10px; display: none; text-align: center;">
+      <img id="selfieImg" src="" style="max-height: 200px; border-radius: 8px; border: 2px solid #5d42ff;">
+    </div>
+
     <!-- Notes -->
     <div class="form-group" style="margin-top: 20px;">
       <label for="challengeNote">Notes (Daily Observations)</label>
-      <textarea id="challengeNote" placeholder="How did it go today? Any difficulties, observations, or challenges faced?"></textarea>
+      <textarea id="challengeNote"
+        placeholder="How did it go today? Any difficulties, observations, or challenges faced?"></textarea>
     </div>
 
     <!-- Submit -->
@@ -121,4 +142,5 @@
 
   <script src="script.js?v=2"></script>
 </body>
+
 </html>

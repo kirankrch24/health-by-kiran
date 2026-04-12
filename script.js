@@ -1,7 +1,7 @@
 // =====================
 // CONFIG
 // =====================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6AoW4MHLPG_K2gXiuPHyKlcsCvWEqzm5GkjlEor1D2FQIFKZT9G6N6HhvAGPPEEXXDA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNo1DgoumxPVuqHL3IJt11g0T3yH09KjlQ5TVNZ0gfv6hGk39uyLl702z_MBu79CSc9Q/exec';
 const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTkaPFnoBZAVb4w1WU8eAROITLea2JyRyqiQhArcnRFnkp8i1wuBmcou5aXpPpLrrExQ/exec';
 const BODY_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9ZLRxo1N8ptv1dL91nlxrs78LP_FGq0bvHmVTEF0eTEDzu8suAHsIWep1rxM5QqEv/exec';
 const QUOTES = [
@@ -18,15 +18,15 @@ async function hashString(str) {
 async function handleLogin() {
   const user = document.getElementById('username')?.value.trim().toLowerCase();
   const pass = document.getElementById('password')?.value.trim();
-  
+
   if (!user || !pass) {
     alert('Invalid Credentials. Please try again.');
     return;
   }
-  
+
   const u = await hashString(user);
   const p = await hashString(pass);
-  
+
   if (u === 'ccbd0a7fa962bc1bd152984bfdaecf339b88231a0d013e927b764b744a9261fc' && p === '66372dabaca91e253afdbf588fdc32a44eed338b219cc164f26ad821ec992e1b') {
     sessionStorage.setItem('loggedIn', 'true');
     window.location.href = 'dashboard.html';
@@ -100,7 +100,7 @@ if (todayDateEl) todayDateEl.value = getTodayISO();
 
 const dayBadge = document.getElementById('dayBadge');
 if (dayBadge) {
-  const challengeStartDate = '2026-04-11';
+  const challengeStartDate = '2026-04-13';
   localStorage.setItem('challenge_start', challengeStartDate); // Keep localStorage consistent
   const diff = Math.floor((new Date() - new Date(challengeStartDate)) / (1000 * 60 * 60 * 24)) + 1;
   dayBadge.textContent = `Day ${diff} of 75`;
@@ -135,6 +135,49 @@ function updateProgress() {
 }
 
 // =====================
+// SELFIE COMPRESSION
+// =====================
+let currentSelfieBase64 = '';
+const selfieInput = document.getElementById('selfieUpload');
+if (selfieInput) {
+  selfieInput.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // We resize on the client side so Google Apps Script doesn't crash 
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const imgTemplate = new Image();
+      imgTemplate.onload = function () {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 600;
+        let scaleSize = 1;
+        if (imgTemplate.width > MAX_WIDTH) {
+          scaleSize = MAX_WIDTH / imgTemplate.width;
+        }
+        canvas.width = imgTemplate.width * scaleSize;
+        canvas.height = imgTemplate.height * scaleSize;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(imgTemplate, 0, 0, canvas.width, canvas.height);
+
+        // compress as JPEG
+        currentSelfieBase64 = canvas.toDataURL('image/jpeg', 0.6);
+
+        const previewWrap = document.getElementById('selfiePreview');
+        const imgEl = document.getElementById('selfieImg');
+        if (previewWrap && imgEl) {
+          previewWrap.style.display = 'block';
+          imgEl.src = currentSelfieBase64;
+        }
+      };
+      imgTemplate.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// =====================
 // UI FEEDBACK & RESETS
 // =====================
 function showToast(message, type = 'success') {
@@ -166,6 +209,12 @@ function resetChallengeForm() {
   if (todayDateEl) todayDateEl.value = getTodayISO();
   const noteEl = document.getElementById('challengeNote');
   if (noteEl) noteEl.value = '';
+
+  const selfieInput = document.getElementById('selfieUpload');
+  if (selfieInput) selfieInput.value = '';
+  const previewWrap = document.getElementById('selfiePreview');
+  if (previewWrap) previewWrap.style.display = 'none';
+  currentSelfieBase64 = '';
 }
 
 // =====================
@@ -175,14 +224,20 @@ async function submitChallenge() {
   const btn = document.getElementById('submitBtn');
   const status = document.getElementById('submitStatus');
 
+  const submitDate = document.getElementById('todayDate')?.value || getTodayISO();
+  const challengeStart = localStorage.getItem('challenge_start') || '2026-04-13';
+  const diff = Math.floor((new Date(submitDate) - new Date(challengeStart)) / (1000 * 60 * 60 * 24)) + 1;
+
   const data = {
-    date: document.getElementById('todayDate')?.value || getTodayISO(),
+    date: submitDate,
+    day: diff,
     nofap: document.getElementById('nofap')?.checked ? 'YES' : 'NO',
     meals: document.getElementById('meals')?.checked ? 'YES' : 'NO',
     exercise: document.getElementById('exercise')?.checked ? 'YES' : 'NO',
     study: document.getElementById('study')?.checked ? 'YES' : 'NO',
     reading: document.getElementById('reading')?.checked ? 'YES' : 'NO',
-    note: document.getElementById('challengeNote')?.value || ''
+    note: document.getElementById('challengeNote')?.value || '',
+    selfie: currentSelfieBase64
   };
 
   btn.textContent = 'Submitting...';
@@ -352,7 +407,7 @@ async function fetchLatestBodyMetrics() {
 function updateDashboardBodyMetrics() {
   const weightStr = localStorage.getItem('current_weight');
   const heightStr = localStorage.getItem('current_height');
-  
+
   // BMI & New Micro Stats
   const bmiDisplay = document.getElementById('currentBMIDisplay');
   if (bmiDisplay && weightStr && heightStr) {
@@ -360,7 +415,7 @@ function updateDashboardBodyMetrics() {
     const heightM = parseFloat(heightStr) / 100;
     const bmi = (weight / (heightM * heightM)).toFixed(1);
     bmiDisplay.textContent = bmi;
-    
+
     if (bmi < 18.5) bmiDisplay.style.color = "#ffb8b8";
     else if (bmi >= 18.5 && bmi <= 24.9) bmiDisplay.style.color = "#b5e8c4";
     else if (bmi >= 25 && bmi <= 29.9) bmiDisplay.style.color = "#ffd8b8";
@@ -373,13 +428,13 @@ function updateDashboardBodyMetrics() {
   if (dashWeightVal && weightStr) {
     const currentW = parseFloat(weightStr);
     dashWeightVal.innerHTML = `${currentW} <span style="font-size: 0.8rem;">kg</span>`;
-    
+
     // Calculate simple visually pleasing progress
     // Assume start weight was around 120kg, target is 75kg
     if (weightProgressBar) {
       const target = 75;
       const start = 120; // Hardcoded start for progress visual scaling
-      
+
       let percentage = 0;
       if (currentW <= target) {
         percentage = 100;
@@ -391,19 +446,19 @@ function updateDashboardBodyMetrics() {
         if (percentage < 0) percentage = 0;
         if (percentage > 100) percentage = 100;
       }
-      
+
       const distanceEl = document.getElementById('heroDistanceText');
       if (distanceEl) {
         let diff = (currentW - target).toFixed(1);
         if (diff < 0) diff = 0;
         distanceEl.innerText = `${diff} KG REMAINING. NO EXCUSES.`;
       }
-      
+
       const ptEl = document.getElementById('dashPercentVal');
       if (ptEl) {
         ptEl.innerText = `${Math.round(percentage)}%`;
       }
-      
+
       // Delay to allow CSS transition to happen smoothly on load
       setTimeout(() => {
         weightProgressBar.style.width = percentage + '%';
