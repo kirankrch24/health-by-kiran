@@ -2,7 +2,7 @@
 // CONFIG
 // =====================
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNo1DgoumxPVuqHL3IJt11g0T3yH09KjlQ5TVNZ0gfv6hGk39uyLl702z_MBu79CSc9Q/exec';
-const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTkaPFnoBZAVb4w1WU8eAROITLea2JyRyqiQhArcnRFnkp8i1wuBmcou5aXpPpLrrExQ/exec';
+const FOOD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtGgER3Z0Ekw3YI-YEf8Xc0I7fYh7Fl-wogbXsIMGXBRLctn_JrWIIyJojm1PXvx2L7Q/exec';
 const BODY_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9ZLRxo1N8ptv1dL91nlxrs78LP_FGq0bvHmVTEF0eTEDzu8suAHsIWep1rxM5QqEv/exec';
 const QUOTES = [
   { text: "Comfort is the enemy of progress. If it's not hurting, you aren't changing. JUST DO IT.", author: "The Grind ✔️" }
@@ -80,6 +80,9 @@ function getTodayISO() {
 const dashDate = document.getElementById('dashDate');
 if (dashDate) dashDate.textContent = formatDate(new Date());
 
+const todaysFoodList = document.getElementById('todaysFoodList');
+if (todaysFoodList) loadTodaysFood();
+
 const quoteText = document.getElementById('quoteText');
 const quoteAuthor = document.getElementById('quoteAuthor');
 if (quoteText) {
@@ -103,24 +106,24 @@ if (dayBadge || document.getElementById('dash75HardCurrentDay')) {
   const challengeStartDate = '2026-04-13';
   localStorage.setItem('challenge_start', challengeStartDate); // Keep localStorage consistent
   const diff = Math.floor((new Date() - new Date(challengeStartDate)) / (1000 * 60 * 60 * 24)) + 1;
-  
+
   if (dayBadge) {
     dayBadge.textContent = `Day ${diff} of 75`;
   }
-  
+
   // Dashboard Visual Progress Bar
   const dashCurrentDay = document.getElementById('dash75HardCurrentDay');
   if (dashCurrentDay) {
     // clamp diff between 0 and 75 so the UI doesn't break
-    const safeDiff = Math.max(0, Math.min(75, diff)); 
+    const safeDiff = Math.max(0, Math.min(75, diff));
     const remaining = 75 - safeDiff;
-    
+
     dashCurrentDay.textContent = `Day ${safeDiff}`;
     document.getElementById('dash75HardDaysLeft').textContent = `${remaining} DAYS REMAINING. NO EXCUSES.`;
-    
+
     const percentage = (safeDiff / 75) * 100;
     document.getElementById('dash75HardPercentVal').textContent = `${Math.round(percentage)}%`;
-    
+
     setTimeout(() => {
       document.getElementById('dash75HardProgressBar').style.width = percentage + '%';
     }, 100);
@@ -391,7 +394,7 @@ async function submitFoodLog() {
     showToast('🍽️ Delicious! Food log submitted successfully.', 'success');
     resetFoodForm();
   } catch (err) {
-    showToast('❌ Failed to submit. Saved locally as backup.', 'error');
+    showToast('❌ Failed to push. Saved locally as backup.', 'error');
   }
 
   btn.textContent = 'Submit Food Log →';
@@ -563,4 +566,166 @@ if (bodyDateEl) bodyDateEl.value = getTodayISO();
 const bodyTimeEl = document.getElementById('bodyTime');
 if (bodyTimeEl) {
   bodyTimeEl.value = new Date().toTimeString().substring(0, 5);
+}
+
+// =====================
+// DASHBOARD - FOOD LOGS
+// =====================
+async function loadTodaysFood() {
+  const container = document.getElementById('todaysFoodList');
+  if (!container) return;
+
+  const todayIso = getTodayISO();
+  let foodLogs = [];
+
+  // 1. Initial Local Load
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('food_log_')) {
+      try {
+        const item = JSON.parse(localStorage.getItem(key));
+        if (item.date && item.date.startsWith(todayIso)) {
+          foodLogs.push(item);
+        }
+      } catch (e) { }
+    }
+  }
+
+  // Define render helper
+  const renderData = (logs) => {
+    // Deduplicate logic just in case both local and remote have same items
+    let uniqueLogsMap = new Map();
+    logs.forEach(log => {
+      // Use time + mealtype as a unique enough key for the same day
+      const key = `${log.time || ''}-${log.mealType || log.mealtype || ''}-${log.source || ''}`;
+      uniqueLogsMap.set(key, log);
+    });
+
+    let uniqueLogs = Array.from(uniqueLogsMap.values());
+
+    if (uniqueLogs.length === 0) {
+      container.innerHTML = `<div class="card action-card" style="padding: 16px; justify-content: center; background: #fff; border: 1.5px dashed #ccc;">
+        <div class="action-desc" style="text-align:center; width: 100%; margin-top: 0; color: #888;">Go to the <a href="food.html" style="color: #000; font-weight: 600; text-decoration: underline;">Food Eaten Log</a> to submit your first meal today.</div>
+      </div>`;
+      return;
+    }
+
+    // Sort by time (ascending)
+    uniqueLogs.sort((a, b) => {
+      return (a.time || '').localeCompare(b.time || '');
+    });
+
+    container.innerHTML = '<div style="display: flex; flex-direction: column; gap: 14px;">';
+
+    let renderedCount = 0;
+    uniqueLogs.forEach((log) => {
+      const items = [];
+      // Defensively check both camelCase and lowercase (Google Sheets column names)
+      if (log.foodItem1 || log.fooditem1) items.push(log.foodItem1 || log.fooditem1);
+      if (log.foodItem2 || log.fooditem2) items.push(log.foodItem2 || log.fooditem2);
+      if (log.foodItem3 || log.fooditem3) items.push(log.foodItem3 || log.fooditem3);
+      if (log.foodItem4 || log.fooditem4) items.push(log.foodItem4 || log.fooditem4);
+      if (log.foodItem5 || log.fooditem5) items.push(log.foodItem5 || log.fooditem5);
+
+      // Skip logging accidental empty test entries
+      if (items.length === 0 && !(log.notes || log.Notes)) return;
+      renderedCount++;
+
+      const itemsStr = items.join(', ');
+
+      const sourceVal = log.source || log.Source || '';
+      const shopVal = log.shop || log.Shop || '';
+
+      let locationStr = sourceVal === 'Homemade' ? 'Homemade' : (shopVal ? shopVal : sourceVal || 'Unknown');
+
+      const card = document.createElement('div');
+      card.style.display = 'flex';
+      card.style.gap = '12px';
+      card.style.alignItems = 'flex-start';
+
+      const mealType = log.mealType || log.mealtype || 'Meal';
+      const timeVal = log.time || '--:--';
+
+      // Sometimes time comes back from Sheets as full ISO timestamp 
+      // Handle Google Sheets date text extraction
+      let displayTime = timeVal;
+      if (typeof displayTime === 'string' && displayTime.length > 5) {
+        // Try strict regex match HH:MM for Google sheets weird Date strings (e.g. "Sat Dec 30 1899 12:23:00 GMT+0000")
+        const timeMatch = displayTime.match(/(\d{2}:\d{2}):\d{2}/);
+        if (timeMatch) {
+          displayTime = timeMatch[1];
+        } else if (displayTime.includes('T')) {
+          displayTime = new Date(displayTime).toTimeString().substring(0, 5);
+        }
+      }
+
+      const notes = log.notes || log.Notes || '';
+
+      card.innerHTML = `
+        <div style="background: rgba(0, 0, 0, 0.05); color: #000; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; min-width: 65px; text-align: center; border: 1px solid rgba(0,0,0,0.1);">
+          ${displayTime}
+        </div>
+        <div style="flex: 1; background: #fff; border: 1.5px solid #e8e8e8; border-radius: 12px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s; position: relative;">
+          <div style="position: absolute; left: -18px; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: #000;"></div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div style="font-weight: 700; font-size: 0.95rem; color: #111;">${mealType}</div>
+            <div style="font-size: 0.75rem; background: rgba(46, 125, 50, 0.1); color: #2e7d32; padding: 3px 8px; border-radius: 6px; font-weight: 600;">
+              📍 ${locationStr}
+            </div>
+          </div>
+          <div style="font-size: 0.9rem; color: #333; line-height: 1.5; font-weight: 500;">
+            ${itemsStr}
+          </div>
+          ${notes ? `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0; font-size: 0.8rem; color: #777; font-style: italic;">📝 "${notes}"</div>` : ''}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+    container.innerHTML += '</div>';
+  };
+
+  // Render local initially
+  renderData(foodLogs);
+
+  // 2. Fetch from Google Sheets if available
+  if (FOOD_APPS_SCRIPT_URL && FOOD_APPS_SCRIPT_URL !== 'YOUR_FOOD_GOOGLE_APPS_SCRIPT_URL_HERE') {
+    try {
+      const resp = await fetch(FOOD_APPS_SCRIPT_URL);
+      if (resp.ok) {
+        const text = await resp.text();
+        let remoteData = null;
+        try { remoteData = JSON.parse(text); } catch (e) { }
+
+        if (remoteData && Array.isArray(remoteData)) {
+          // Filter remote data for today
+          const remoteToday = remoteData.filter(item => {
+            // Handle raw date strings from sheets
+            let d = item.date || item.Date;
+            if (!d) return false;
+
+            // Convert any Google formats "Mon Apr 13 2026..." or timestamps into proper local YYYY-MM-DD
+            if (typeof d === 'string') {
+              if (d.startsWith(todayIso)) return true; // Direct match
+
+              // If it's a long google date string, try parsing it securely
+              const parsedDate = new Date(d);
+              if (!isNaN(parsedDate.getTime())) {
+                const isoLike = parsedDate.getFullYear() + '-' + String(parsedDate.getMonth() + 1).padStart(2, '0') + '-' + String(parsedDate.getDate()).padStart(2, '0');
+                return isoLike === todayIso;
+              }
+            }
+            return false;
+          });
+
+          if (remoteToday.length > 0 || remoteData.length > 0) {
+            // Append to foodLogs and re-render
+            renderData([...foodLogs, ...remoteToday]);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch remote food logs", e);
+    }
+  }
 }
