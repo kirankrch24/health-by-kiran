@@ -81,7 +81,11 @@ const dashDate = document.getElementById('dashDate');
 if (dashDate) dashDate.textContent = formatDate(new Date());
 
 const todaysFoodList = document.getElementById('todaysFoodList');
-if (todaysFoodList) loadTodaysFood();
+if (todaysFoodList) {
+  const dashFoodDate = document.getElementById('dashboardFoodDate');
+  if (dashFoodDate) dashFoodDate.value = getTodayISO();
+  loadTodaysFood();
+}
 
 const quoteText = document.getElementById('quoteText');
 const quoteAuthor = document.getElementById('quoteAuthor');
@@ -575,25 +579,19 @@ async function loadTodaysFood() {
   const container = document.getElementById('todaysFoodList');
   if (!container) return;
 
-  const todayIso = getTodayISO();
-  let foodLogs = [];
+  const dateInput = document.getElementById('dashboardFoodDate');
+  const targetIso = dateInput && dateInput.value ? dateInput.value : getTodayISO();
 
-  // 1. Initial Local Load
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith('food_log_')) {
-      try {
-        const item = JSON.parse(localStorage.getItem(key));
-        if (item.date && item.date.startsWith(todayIso)) {
-          foodLogs.push(item);
-        }
-      } catch (e) { }
-    }
-  }
+  // Show loading state to indicate it's fetching purely from the cloud
+  container.innerHTML = `
+    <div class="card" style="padding: 16px;">
+      <div class="action-desc" style="text-align:center; width:100%; margin-top:0;">Loading your meals from Google Sheets...</div>
+    </div>
+  `;
 
   // Define render helper
   const renderData = (logs) => {
-    // Deduplicate logic just in case both local and remote have same items
+    // Deduplicate logic just in case remote has same items accidentally
     let uniqueLogsMap = new Map();
     logs.forEach(log => {
       // Use time + mealtype as a unique enough key for the same day
@@ -605,7 +603,7 @@ async function loadTodaysFood() {
 
     if (uniqueLogs.length === 0) {
       container.innerHTML = `<div class="card action-card" style="padding: 16px; justify-content: center; background: #fff; border: 1.5px dashed #ccc;">
-        <div class="action-desc" style="text-align:center; width: 100%; margin-top: 0; color: #888;">Go to the <a href="food.html" style="color: #000; font-weight: 600; text-decoration: underline;">Food Eaten Log</a> to submit your first meal today.</div>
+        <div class="action-desc" style="text-align:center; width: 100%; margin-top: 0; color: #888;">No meals found for this date.</div>
       </div>`;
       return;
     }
@@ -685,10 +683,7 @@ async function loadTodaysFood() {
     container.innerHTML += '</div>';
   };
 
-  // Render local initially
-  renderData(foodLogs);
-
-  // 2. Fetch from Google Sheets if available
+  // 2. Fetch Strictly from Google Sheets
   if (FOOD_APPS_SCRIPT_URL && FOOD_APPS_SCRIPT_URL !== 'YOUR_FOOD_GOOGLE_APPS_SCRIPT_URL_HERE') {
     try {
       const resp = await fetch(FOOD_APPS_SCRIPT_URL);
@@ -706,26 +701,30 @@ async function loadTodaysFood() {
 
             // Convert any Google formats "Mon Apr 13 2026..." or timestamps into proper local YYYY-MM-DD
             if (typeof d === 'string') {
-              if (d.startsWith(todayIso)) return true; // Direct match
+              if (d.startsWith(targetIso)) return true; // Direct match
 
               // If it's a long google date string, try parsing it securely
               const parsedDate = new Date(d);
               if (!isNaN(parsedDate.getTime())) {
                 const isoLike = parsedDate.getFullYear() + '-' + String(parsedDate.getMonth() + 1).padStart(2, '0') + '-' + String(parsedDate.getDate()).padStart(2, '0');
-                return isoLike === todayIso;
+                return isoLike === targetIso;
               }
             }
             return false;
           });
 
-          if (remoteToday.length > 0 || remoteData.length > 0) {
-            // Append to foodLogs and re-render
-            renderData([...foodLogs, ...remoteToday]);
-          }
+          renderData(remoteToday);
+        } else {
+          renderData([]);
         }
+      } else {
+        renderData([]);
       }
     } catch (e) {
       console.warn("Could not fetch remote food logs", e);
+      renderData([]);
     }
+  } else {
+    renderData([]);
   }
 }
