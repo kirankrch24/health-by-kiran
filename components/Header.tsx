@@ -4,22 +4,20 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { logout } from '@/lib/utils';
 
-interface NavItem { href: string; label: string; active?: boolean; }
-
 export default function Header({ active }: { active: string }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
-  const nav: NavItem[] = [
-    { href: '/health-by-kiran/dashboard/', label: '🏠 Home' },
-    { href: '/health-by-kiran/hard75/', label: '💪 75 Hard Challenge' },
-    { href: '/health-by-kiran/food/', label: '🍽️ Food Eaten Log' },
-    { href: '/health-by-kiran/body/', label: '⚖️ Body Metrics Log' },
+  const nav = [
+    { href: '/dashboard/', label: '🏠 Home' },
+    { href: '/hard75/',    label: '💪 75 Hard Challenge' },
+    { href: '/food/',      label: '🍽️ Food Eaten Log' },
+    { href: '/body/',      label: '⚖️ Body Metrics Log' },
   ];
 
   function handleLogout() {
     logout();
-    router.push('/health-by-kiran/');
+    router.push('/');
   }
 
   return (

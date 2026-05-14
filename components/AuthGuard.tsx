@@ -8,7 +8,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoggedIn()) {
-      router.replace('/health-by-kiran/');
+      router.replace('/');
     }
   }, [router]);
 

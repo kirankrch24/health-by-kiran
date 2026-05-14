@@ -248,9 +248,9 @@ export default function DashboardPage() {
 
           <div className="section-tag">Quick Actions</div>
           {[
-            { href:'/health-by-kiran/hard75/', icon:'💪', title:'75 Hard Challenge', desc:'Log today\'s tasks & habits' },
-            { href:'/health-by-kiran/food/', icon:'🍽️', title:'Food Eaten Log', desc:'Track your meals & hunger' },
-            { href:'/health-by-kiran/body/', icon:'⚖️', title:'Body Metrics Log', desc:'Track your weight & target 75kg' },
+            { href:'/hard75/', icon:'💪', title:'75 Hard Challenge', desc:'Log today\'s tasks & habits' },
+            { href:'/food/', icon:'🍽️', title:'Food Eaten Log', desc:'Track your meals & hunger' },
+            { href:'/body/', icon:'⚖️', title:'Body Metrics Log', desc:'Track your weight & target 75kg' },
           ].map((a) => (
             <Link href={a.href} key={a.href} className="action-link">
               <div className="card action-card">

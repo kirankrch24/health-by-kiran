@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn()) router.replace('/health-by-kiran/dashboard/');
+    if (isLoggedIn()) router.replace('/dashboard/');
   }, [router]);
 
   async function handleLogin() {
@@ -25,7 +25,7 @@ export default function LoginPage() {
     const p = await hashString(password.trim());
     if (u === VALID_USER_HASH && p === VALID_PASS_HASH) {
       setLoggedIn();
-      router.push('/health-by-kiran/dashboard/');
+      router.push('/dashboard/');
     } else {
       showToast('❌ Invalid credentials. Please try again.', 'error');
       setLoading(false);
@@ -53,26 +53,16 @@ export default function LoginPage() {
             <div className="form-group">
               <label htmlFor="username">Username</label>
               <input
-                type="text"
-                id="username"
-                placeholder="Enter username"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={handleKey}
+                type="text" id="username" placeholder="Enter username"
+                autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                value={username} onChange={(e) => setUsername(e.target.value)} onKeyDown={handleKey}
               />
             </div>
             <div className="form-group mb-5">
               <label htmlFor="password">Password</label>
               <input
-                type="password"
-                id="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={handleKey}
+                type="password" id="password" placeholder="Enter password"
+                value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={handleKey}
               />
             </div>
             <button className="btn" onClick={handleLogin} disabled={loading}>
