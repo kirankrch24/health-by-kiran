@@ -11,15 +11,12 @@ export function getTodayISO(): string {
 
 export function formatDate(d: Date): string {
   return d.toLocaleDateString('en-IN', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 }
 
 export function getDayNumber(startDate: string, targetDate?: string): number {
-  const start = new Date(startDate);
+  const start  = new Date(startDate);
   const target = targetDate ? new Date(targetDate) : new Date();
   return Math.floor((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 }
@@ -35,4 +32,17 @@ export function setLoggedIn(): void {
 
 export function logout(): void {
   sessionStorage.removeItem('loggedIn');
+}
+
+// ─── Single source of truth for settings ─────────────────────────────────────
+// Always reads from localStorage (client only). Safe fallbacks built in.
+export function loadSettings() {
+  if (typeof window === 'undefined') {
+    return { startDate: '2026-04-13', goalWeight: '75', startWeight: '120' };
+  }
+  return {
+    startDate:   localStorage.getItem('setting_start_date')   || '2026-04-13',
+    goalWeight:  localStorage.getItem('setting_goal_weight')  || '75',
+    startWeight: localStorage.getItem('setting_start_weight') || '120',
+  };
 }

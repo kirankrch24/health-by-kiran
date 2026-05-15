@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import AuthGuard from '@/components/AuthGuard';
 import ToastContainer from '@/components/Toast';
-import { formatDate, getTodayISO, getDayNumber } from '@/lib/utils';
+import { formatDate, getTodayISO, getDayNumber, loadSettings } from '@/lib/utils';
 import { FOOD_APPS_SCRIPT_URL, BODY_APPS_SCRIPT_URL, QUOTE } from '@/lib/config';
 
 interface FoodLog {
@@ -16,52 +16,65 @@ interface FoodLog {
   foodItem5?: string; fooditem5?: string;
 }
 
-function getSettings() {
-  if (typeof window === 'undefined') return { startDate: '2026-04-13', goalWeight: '75', startWeight: '120' };
-  return {
-    startDate:   localStorage.getItem('setting_start_date')   || '2026-04-13',
-    goalWeight:  localStorage.getItem('setting_goal_weight')  || '75',
-    startWeight: localStorage.getItem('setting_start_weight') || '120',
-  };
-}
-
 export default function DashboardPage() {
+  // ── Settings — always loaded from localStorage in useEffect ──
+  const [startDate,   setStartDate]   = useState('2026-04-13');
+  const [goalWeight,  setGoalWeight]  = useState('75');
+  const [startWeight, setStartWeight] = useState('120');
+
+  // ── Body metrics ──
   const [weight, setWeight] = useState('');
-  const [bmi, setBmi] = useState('--');
-  const [foodLogs, setFoodLogs] = useState<FoodLog[]>([]);
+  const [bmi,    setBmi]    = useState('--');
+
+  // ── Food log ──
+  const [foodLogs,    setFoodLogs]    = useState<FoodLog[]>([]);
   const [foodLoading, setFoodLoading] = useState(true);
-  const [foodDate, setFoodDate] = useState(getTodayISO());
-  const [settings, setSettings] = useState(getSettings());
+  const [foodDate,    setFoodDate]    = useState(getTodayISO());
 
   useEffect(() => {
-    const s = getSettings(); setSettings(s);
+    // Load settings from localStorage (single source of truth)
+    const s = loadSettings();
+    setStartDate(s.startDate);
+    setGoalWeight(s.goalWeight);
+    setStartWeight(s.startWeight);
+
+    // Load body metrics
     const w = localStorage.getItem('current_weight') || '';
     const h = localStorage.getItem('current_height') || '';
     setWeight(w);
-    if (w && h) setBmi((parseFloat(w) / Math.pow(parseFloat(h)/100, 2)).toFixed(1));
+    if (w && h) setBmi((parseFloat(w) / Math.pow(parseFloat(h) / 100, 2)).toFixed(1));
+
+    // Sync from Google Sheets in background
     if (BODY_APPS_SCRIPT_URL) {
-      fetch(BODY_APPS_SCRIPT_URL).then(r=>r.json()).then(data=>{
-        if (data?.weight && data?.height) {
-          localStorage.setItem('current_weight', data.weight);
-          localStorage.setItem('current_height', data.height);
-          setWeight(data.weight);
-          setBmi((parseFloat(data.weight)/Math.pow(parseFloat(data.height)/100,2)).toFixed(1));
-        }
-      }).catch(()=>{});
+      fetch(BODY_APPS_SCRIPT_URL)
+        .then(r => r.json())
+        .then(data => {
+          if (data?.weight && data?.height) {
+            localStorage.setItem('current_weight', data.weight);
+            localStorage.setItem('current_height', data.height);
+            setWeight(data.weight);
+            setBmi((parseFloat(data.weight) / Math.pow(parseFloat(data.height) / 100, 2)).toFixed(1));
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
-  const dayNum     = getDayNumber(settings.startDate);
-  const safeDayNum = Math.max(0, Math.min(75, dayNum));
+  // ── Derived values ──
+  const dayNum      = getDayNumber(startDate);
+  const safeDayNum  = Math.max(0, Math.min(75, dayNum));
   const remaining75 = 75 - safeDayNum;
-  const pct75 = Math.round((safeDayNum / 75) * 100);
+  const pct75       = Math.round((safeDayNum / 75) * 100);
 
-  const goalW  = parseFloat(settings.goalWeight)  || 75;
-  const startW = parseFloat(settings.startWeight) || 120;
-  const currW  = parseFloat(weight) || 0;
+  const goalW  = parseFloat(goalWeight)  || 75;
+  const startW = parseFloat(startWeight) || 120;
+  const currW  = parseFloat(weight)      || 0;
   const weightRemaining = currW ? Math.max(0, currW - goalW).toFixed(1) : '--';
-  const weightProgress  = currW ? Math.max(0, Math.min(100, ((startW - currW)/(startW - goalW))*100)) : 0;
+  const weightProgress  = currW
+    ? Math.max(0, Math.min(100, ((startW - currW) / (startW - goalW)) * 100))
+    : 0;
 
+  // ── Food log loader ──
   const loadFood = useCallback(async (date: string) => {
     setFoodLoading(true);
     try {
@@ -69,19 +82,21 @@ export default function DashboardPage() {
       if (!resp.ok) { setFoodLogs([]); setFoodLoading(false); return; }
       const all: FoodLog[] = await resp.json();
       const filtered = all.filter(item => {
-        const d = item.date || item.Date; if (!d) return false;
+        const d = item.date || item.Date;
+        if (!d) return false;
         if (typeof d === 'string') {
           if (d.startsWith(date)) return true;
           const p = new Date(d);
           if (!isNaN(p.getTime())) {
-            return `${p.getFullYear()}-${String(p.getMonth()+1).padStart(2,'0')}-${String(p.getDate()).padStart(2,'0')}` === date;
+            const iso = `${p.getFullYear()}-${String(p.getMonth()+1).padStart(2,'0')}-${String(p.getDate()).padStart(2,'0')}`;
+            return iso === date;
           }
         }
         return false;
       });
       const seen = new Map<string, FoodLog>();
       filtered.forEach(log => seen.set(`${log.time||''}-${log.mealType||log.mealtype||''}`, log));
-      setFoodLogs(Array.from(seen.values()).sort((a,b)=>(a.time||'').localeCompare(b.time||'')));
+      setFoodLogs(Array.from(seen.values()).sort((a,b) => (a.time||'').localeCompare(b.time||'')));
     } catch { setFoodLogs([]); }
     setFoodLoading(false);
   }, []);
@@ -89,10 +104,11 @@ export default function DashboardPage() {
   useEffect(() => { loadFood(foodDate); }, [foodDate, loadFood]);
 
   function displayTime(t: string) {
-    if (!t || t.length<=5) return t||'--:--';
-    const m = t.match(/(\d{2}:\d{2}):\d{2}/); if (m) return m[1];
-    if (t.includes('T')) return new Date(t).toTimeString().substring(0,5);
-    return t.substring(0,5);
+    if (!t || t.length <= 5) return t || '--:--';
+    const m = t.match(/(\d{2}:\d{2}):\d{2}/);
+    if (m) return m[1];
+    if (t.includes('T')) return new Date(t).toTimeString().substring(0, 5);
+    return t.substring(0, 5);
   }
 
   return (
@@ -103,26 +119,35 @@ export default function DashboardPage() {
         {/* Welcome Banner */}
         <section className="premium-welcome">
           <div className="welcome-text">Keep Going, Champion</div>
-          <div className="welcome-name">Hey Kiran 👋<br/>Just Do It ✔️</div>
+          <div className="welcome-name">Hey Kiran 👋<br />Just Do It ✔️</div>
           <div className="micro-stats-row">
-            <div className="micro-stat"><div className="micro-stat-val">Day {safeDayNum}</div><div className="micro-stat-lbl">75 Hard</div></div>
-            <div className="micro-stat"><div className="micro-stat-val">{weight||'--'} kg</div><div className="micro-stat-lbl">Weight</div></div>
-            <div className="micro-stat"><div className="micro-stat-val">{bmi}</div><div className="micro-stat-lbl">BMI</div></div>
+            <div className="micro-stat">
+              <div className="micro-stat-val">Day {safeDayNum}</div>
+              <div className="micro-stat-lbl">75 Hard</div>
+            </div>
+            <div className="micro-stat">
+              <div className="micro-stat-val">{weight || '--'} kg</div>
+              <div className="micro-stat-lbl">Weight</div>
+            </div>
+            <div className="micro-stat">
+              <div className="micro-stat-val">{bmi}</div>
+              <div className="micro-stat-lbl">BMI</div>
+            </div>
           </div>
         </section>
 
-        <main className="dashboard-content" style={{ paddingTop:24 }}>
+        <main className="dashboard-content" style={{ paddingTop: 24 }}>
 
           {/* JDI + Ikigai strip */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:4 }}>
             <div className="jdi-banner">
-              <div><div className="jdi-text">Just<br/>Do It.</div><div className="jdi-sub">No excuses</div></div>
+              <div><div className="jdi-text">Just<br />Do It.</div><div className="jdi-sub">No excuses</div></div>
               <div className="jdi-swoosh">✔️</div>
             </div>
-            <div style={{ background:'#000', borderRadius:'var(--radius)', padding:'16px 18px', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+            <div style={{ background:'#000', borderRadius:'var(--radius)', padding:'16px 18px' }}>
               <div style={{ fontSize:'0.58rem', color:'rgba(255,255,255,0.35)', textTransform:'uppercase', letterSpacing:'2px', fontWeight:800, marginBottom:8 }}>🌸 Ikigai</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                {[['🔥','Passion'],['🎯','Purpose'],['⚔️','Mastery'],['♾️','Consistency']].map(([icon,label])=>(
+                {[['🔥','Passion'],['🎯','Purpose'],['⚔️','Mastery'],['♾️','Consistency']].map(([icon,label]) => (
                   <div key={label} style={{ background:'rgba(255,255,255,0.06)', borderRadius:8, padding:'8px 6px', textAlign:'center' }}>
                     <div style={{ fontSize:'1rem' }}>{icon}</div>
                     <div style={{ fontSize:'0.58rem', color:'rgba(255,255,255,0.6)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginTop:3 }}>{label}</div>
@@ -136,7 +161,7 @@ export default function DashboardPage() {
           <div className="section-tag">Core Goals</div>
           <div className="three-block-grid">
 
-            {/* Weight */}
+            {/* Weight Card */}
             <div className="premium-card weight-card">
               <div className="card-bg-glow" style={{ background:'#f5a623' }} />
               <div className="goal-header">
@@ -149,10 +174,10 @@ export default function DashboardPage() {
               <div className="goal-content">
                 <div className="weight-stats">
                   <div>
-                    <div className="weight-current" style={{ color:'#c07800' }}>{weight||'--'}<span style={{ fontSize:'1rem' }}> kg</span></div>
+                    <div className="weight-current" style={{ color:'#c07800' }}>{weight || '--'}<span style={{ fontSize:'1rem' }}> kg</span></div>
                     <div className="bmi-badge">BMI {bmi}</div>
                   </div>
-                  <div className="weight-target">Goal<br/>{goalW} kg</div>
+                  <div className="weight-target">Goal<br />{goalW} kg</div>
                 </div>
                 <div className="w-progress-track">
                   <div className="w-progress-fill" style={{ width:`${weightProgress}%`, background:'linear-gradient(90deg,#f5a623,#ffb94a)' }} />
@@ -161,7 +186,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* 75 Hard */}
+            {/* 75 Hard Card */}
             <div className="premium-card challenge-progress-card">
               <div className="card-bg-glow" style={{ background:'#7b31d4' }} />
               <div className="goal-header">
@@ -174,7 +199,7 @@ export default function DashboardPage() {
               <div className="goal-content">
                 <div className="weight-stats">
                   <div className="weight-current" style={{ color:'#7b31d4' }}>Day {safeDayNum}<span style={{ fontSize:'1rem' }}>/75</span></div>
-                  <div className="weight-target">Goal<br/>75 days</div>
+                  <div className="weight-target">Goal<br />75 days</div>
                 </div>
                 <div className="w-progress-track">
                   <div className="w-progress-fill" style={{ width:`${pct75}%`, background:'linear-gradient(90deg,#7b31d4,#a855f7)' }} />
@@ -183,7 +208,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Quote */}
+            {/* Quote Card */}
             <div className="premium-card quote-card">
               <div className="card-bg-glow" style={{ background:'#0060c0' }} />
               <div className="goal-header">
@@ -194,21 +219,29 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="goal-content">
-                <div style={{ fontSize:'0.85rem', fontWeight:600, lineHeight:1.65, color:'var(--text-2)', marginTop:8, fontStyle:'italic' }}>&ldquo;{QUOTE.text}&rdquo;</div>
-                <div style={{ fontSize:'0.65rem', color:'var(--text-3)', marginTop:10, fontWeight:800, letterSpacing:'1px', textTransform:'uppercase' }}>— {QUOTE.author}</div>
+                <div style={{ fontSize:'0.85rem', fontWeight:600, lineHeight:1.65, color:'var(--text-2)', marginTop:8, fontStyle:'italic' }}>
+                  &ldquo;{QUOTE.text}&rdquo;
+                </div>
+                <div style={{ fontSize:'0.65rem', color:'var(--text-3)', marginTop:10, fontWeight:800, letterSpacing:'1px', textTransform:'uppercase' }}>
+                  — {QUOTE.author}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Philosophy Strip */}
           <div className="section-tag">Nike Philosophy</div>
-          <div style={{ background:'#000', borderRadius:'var(--radius)', padding:'20px 22px', marginBottom:4 }}>
+          <div style={{ background:'#000', borderRadius:'var(--radius)', padding:'20px 22px' }}>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, textAlign:'center' }}>
-              {[['⚡','Act','Stop thinking. Start moving.'],['🧱','Build','One brick. Every day.'],['🔄','Repeat','No days off. Ever.']].map(([icon,title,sub])=>(
+              {[
+                ['⚡','Act',    'Stop thinking.\nStart moving.'],
+                ['🧱','Build',  'One brick.\nEvery day.'],
+                ['🔄','Repeat', 'No days off.\nEver.'],
+              ].map(([icon,title,sub]) => (
                 <div key={title}>
                   <div style={{ fontSize:'1.4rem', marginBottom:6 }}>{icon}</div>
                   <div style={{ fontSize:'0.78rem', fontWeight:900, color:'#fff', textTransform:'uppercase', letterSpacing:'1px' }}>{title}</div>
-                  <div style={{ fontSize:'0.7rem', color:'rgba(255,255,255,0.45)', marginTop:4, lineHeight:1.5 }}>{sub}</div>
+                  <div style={{ fontSize:'0.7rem', color:'rgba(255,255,255,0.45)', marginTop:4, lineHeight:1.5, whiteSpace:'pre-line' }}>{sub}</div>
                 </div>
               ))}
             </div>
@@ -217,7 +250,7 @@ export default function DashboardPage() {
           {/* Food Log */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:28, marginBottom:12 }}>
             <div className="section-tag" style={{ margin:0 }}>📅 What I Ate</div>
-            <input type="date" value={foodDate} onChange={e=>setFoodDate(e.target.value)}
+            <input type="date" value={foodDate} onChange={e => setFoodDate(e.target.value)}
               style={{ padding:'7px 12px', fontSize:'0.78rem', border:'1.5px solid var(--border)', borderRadius:'var(--radius-sm)', background:'var(--surface)', cursor:'pointer', color:'var(--text-1)', fontWeight:700, fontFamily:'inherit', outline:'none' }} />
           </div>
 
@@ -234,8 +267,8 @@ export default function DashboardPage() {
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 {foodLogs.map((log, i) => {
                   const its = [log.foodItem1||log.fooditem1,log.foodItem2||log.fooditem2,log.foodItem3||log.fooditem3,log.foodItem4||log.fooditem4,log.foodItem5||log.fooditem5].filter(Boolean);
-                  const src = log.source||log.Source||'', shop = log.shop||log.Shop||'';
-                  const loc = src==='Homemade'?'Homemade':(shop||src||'Unknown');
+                  const src = log.source||log.Source||'';
+                  const loc = src === 'Homemade' ? 'Homemade' : (log.shop||log.Shop||src||'Unknown');
                   const mt  = log.mealType||log.mealtype||'Meal';
                   const notes = log.notes||log.Notes||'';
                   return (
@@ -261,7 +294,7 @@ export default function DashboardPage() {
           {[
             { href:'/hard75/',   icon:'💪', title:'75 Hard Challenge',  desc:'Log today\'s tasks & habits' },
             { href:'/food/',     icon:'🍽️', title:'Food Eaten Log',     desc:'Track your meals & hunger' },
-            { href:'/body/',     icon:'⚖️', title:'Body Metrics',        desc:'Track weight · target '+goalW+' kg' },
+            { href:'/body/',     icon:'⚖️', title:'Body Metrics',        desc:`Track weight · target ${goalW} kg` },
             { href:'/settings/', icon:'⚙️', title:'Settings',            desc:'Adjust goals & challenge date' },
           ].map(a => (
             <Link href={a.href} key={a.href} className="action-link">
