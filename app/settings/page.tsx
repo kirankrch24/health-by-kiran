@@ -11,13 +11,38 @@ export default function SettingsPage() {
   const [startWeight,  setStartWeight]  = useState('120');
   const [currWeight,   setCurrWeight]   = useState('--');
   const [saved, setSaved] = useState(false);
+  const [synced, setSynced] = useState(false);
 
   // All localStorage reads happen safely inside useEffect (client-only)
   useEffect(() => {
-    setStartDate(   localStorage.getItem('setting_start_date')   || '2026-04-13');
-    setGoalWeight(  localStorage.getItem('setting_goal_weight')  || '75');
-    setStartWeight( localStorage.getItem('setting_start_weight') || '120');
-    setCurrWeight(  localStorage.getItem('current_weight')       || '--');
+    // ── Auto-apply settings from URL params (mobile sync) ──
+    const params = new URLSearchParams(window.location.search);
+    const urlSd  = params.get('sd');
+    const urlGw  = params.get('gw');
+    const urlSw  = params.get('sw');
+
+    if (urlSd || urlGw || urlSw) {
+      // Settings came from a sync link — save + apply immediately
+      const sd = urlSd || localStorage.getItem('setting_start_date')   || '2026-04-13';
+      const gw = urlGw || localStorage.getItem('setting_goal_weight')  || '75';
+      const sw = urlSw || localStorage.getItem('setting_start_weight') || '120';
+      localStorage.setItem('setting_start_date',   sd);
+      localStorage.setItem('setting_goal_weight',  gw);
+      localStorage.setItem('setting_start_weight', sw);
+      setStartDate(sd);
+      setGoalWeight(gw);
+      setStartWeight(sw);
+      setSynced(true);
+      showToast('✅ Settings synced from link!', 'success');
+      // Clean URL so it doesn't re-trigger on refresh
+      window.history.replaceState({}, '', window.location.pathname);
+    } else {
+      // Normal load — read from localStorage
+      setStartDate(   localStorage.getItem('setting_start_date')   || '2026-04-13');
+      setGoalWeight(  localStorage.getItem('setting_goal_weight')  || '75');
+      setStartWeight( localStorage.getItem('setting_start_weight') || '120');
+    }
+    setCurrWeight(localStorage.getItem('current_weight') || '--');
   }, []);
 
   const dayNum      = getDayNumber(startDate);
@@ -46,6 +71,17 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 3000);
   }
 
+  function handleCopySyncLink() {
+    const base = window.location.origin + window.location.pathname;
+    const link = `${base}?sd=${encodeURIComponent(startDate)}&gw=${encodeURIComponent(goalWeight)}&sw=${encodeURIComponent(startWeight)}`;
+    navigator.clipboard.writeText(link).then(() => {
+      showToast('📋 Sync link copied! Open it on your phone.', 'success');
+    }).catch(() => {
+      // Fallback: show in prompt
+      window.prompt('Copy this link and open on your phone:', link);
+    });
+  }
+
   function handleReset() {
     if (!confirm('Clear all local progress data? Your Google Sheets data is safe.')) return;
     const keep = ['setting_start_date','setting_goal_weight','setting_start_weight','current_weight','current_height'];
@@ -63,6 +99,34 @@ export default function SettingsPage() {
           <div className="challenge-intro">
             <h2>⚙️ Settings</h2>
             <p>Set your Day 0, weight goals and targets. All progress on the dashboard updates automatically.</p>
+          </div>
+
+          {/* ── Mobile Sync Banner ── */}
+          {synced && (
+            <div style={{ background:'#e6f9ee', border:'2px solid #34c759', borderRadius:'var(--radius)', padding:'16px 18px', display:'flex', gap:12, alignItems:'center' }}>
+              <span style={{ fontSize:'1.4rem' }}>✅</span>
+              <div>
+                <div style={{ fontWeight:900, fontSize:'0.85rem', color:'#1a7a35' }}>Settings Synced!</div>
+                <div style={{ fontSize:'0.75rem', color:'#2a8a45', marginTop:2 }}>Your settings from the sync link have been applied and saved on this device.</div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Sync to Mobile Card ── */}
+          <div style={{ background:'linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)', border:'none', borderRadius:'var(--radius)', padding:'20px', color:'#fff', marginTop:4 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+              <span style={{ fontSize:'1.4rem' }}>📱</span>
+              <div style={{ fontWeight:900, fontSize:'0.9rem', letterSpacing:'0.5px' }}>Sync to Mobile</div>
+            </div>
+            <p style={{ fontSize:'0.78rem', color:'rgba(255,255,255,0.7)', lineHeight:1.6, margin:'0 0 16px' }}>
+              Settings are stored per-device. Copy this link and open it on your phone to instantly apply the same start date and goals there.
+            </p>
+            <button
+              onClick={handleCopySyncLink}
+              style={{ background:'#fff', color:'#1a1a2e', border:'none', borderRadius:'var(--radius-sm)', padding:'13px 20px', fontFamily:'inherit', fontSize:'0.78rem', fontWeight:900, letterSpacing:'1.5px', textTransform:'uppercase', cursor:'pointer', width:'100%', transition:'var(--transition)' }}
+            >
+              📋 Copy Sync Link → Open on Phone
+            </button>
           </div>
 
           {/* Live Status Row */}
@@ -167,7 +231,7 @@ export default function SettingsPage() {
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {[
               { icon:'📅', title:'Day 0 = Reset Date', body:'Set any past date as your Day 0. All challenge progress counts from that date. Change it anytime to restart.' },
-              { icon:'⚖️', title:'Weight Progress',    body:'Set your starting weight and target. The dashboard progress bar calculates % based on these values.' },
+              { icon:'📱', title:'Sync Across Devices', body:'Tap "Copy Sync Link" on your computer, then open the link on your phone. Settings auto-apply instantly.' },
               { icon:'☁️', title:'Google Sheets Safe', body:'Changing settings here only affects the dashboard display. All your Sheets data is completely untouched.' },
             ].map(p => (
               <div key={p.title} style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'16px 18px', display:'flex', gap:14, alignItems:'flex-start', boxShadow:'var(--shadow-sm)' }}>
