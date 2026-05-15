@@ -3,46 +3,34 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import AuthGuard from '@/components/AuthGuard';
 import ToastContainer, { showToast } from '@/components/Toast';
-import { getDayNumber, getTodayISO } from '@/lib/utils';
+import { getDayNumber, getTodayISO, loadSettings, loadSettingsFromCloud, saveSettingsToCloud, initSettingsUrl } from '@/lib/utils';
+import { SETTINGS_APPS_SCRIPT_URL } from '@/lib/config';
 
 export default function SettingsPage() {
   const [startDate,    setStartDate]    = useState('2026-04-13');
   const [goalWeight,   setGoalWeight]   = useState('75');
   const [startWeight,  setStartWeight]  = useState('120');
   const [currWeight,   setCurrWeight]   = useState('--');
-  const [saved, setSaved] = useState(false);
-  const [synced, setSynced] = useState(false);
+  const [saved, setSaved]   = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // All localStorage reads happen safely inside useEffect (client-only)
   useEffect(() => {
-    // ── Auto-apply settings from URL params (mobile sync) ──
-    const params = new URLSearchParams(window.location.search);
-    const urlSd  = params.get('sd');
-    const urlGw  = params.get('gw');
-    const urlSw  = params.get('sw');
+    initSettingsUrl(SETTINGS_APPS_SCRIPT_URL);
 
-    if (urlSd || urlGw || urlSw) {
-      // Settings came from a sync link — save + apply immediately
-      const sd = urlSd || localStorage.getItem('setting_start_date')   || '2026-04-13';
-      const gw = urlGw || localStorage.getItem('setting_goal_weight')  || '75';
-      const sw = urlSw || localStorage.getItem('setting_start_weight') || '120';
-      localStorage.setItem('setting_start_date',   sd);
-      localStorage.setItem('setting_goal_weight',  gw);
-      localStorage.setItem('setting_start_weight', sw);
-      setStartDate(sd);
-      setGoalWeight(gw);
-      setStartWeight(sw);
-      setSynced(true);
-      showToast('✅ Settings synced from link!', 'success');
-      // Clean URL so it doesn't re-trigger on refresh
-      window.history.replaceState({}, '', window.location.pathname);
-    } else {
-      // Normal load — read from localStorage
-      setStartDate(   localStorage.getItem('setting_start_date')   || '2026-04-13');
-      setGoalWeight(  localStorage.getItem('setting_goal_weight')  || '75');
-      setStartWeight( localStorage.getItem('setting_start_weight') || '120');
-    }
+    // Show local values instantly (no flicker)
+    const local = loadSettings();
+    setStartDate(local.startDate);
+    setGoalWeight(local.goalWeight);
+    setStartWeight(local.startWeight);
     setCurrWeight(localStorage.getItem('current_weight') || '--');
+
+    // Then fetch latest from cloud and update if different
+    loadSettingsFromCloud().then(cloud => {
+      setStartDate(cloud.startDate);
+      setGoalWeight(cloud.goalWeight);
+      setStartWeight(cloud.startWeight);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   const dayNum      = getDayNumber(startDate);
@@ -51,35 +39,20 @@ export default function SettingsPage() {
   const pct75       = Math.round((safeDayNum / 75) * 100);
 
   const weightLost = currWeight !== '--' && startWeight
-    ? Math.max(0, parseFloat(startWeight) - parseFloat(currWeight)).toFixed(1)
-    : '--';
+    ? Math.max(0, parseFloat(startWeight) - parseFloat(currWeight)).toFixed(1) : '--';
   const weightToGo = currWeight !== '--' && goalWeight
-    ? Math.max(0, parseFloat(currWeight) - parseFloat(goalWeight)).toFixed(1)
-    : '--';
+    ? Math.max(0, parseFloat(currWeight) - parseFloat(goalWeight)).toFixed(1) : '--';
   const weightProgress = currWeight !== '--' && startWeight && goalWeight
     ? Math.min(100, Math.max(0, ((parseFloat(startWeight) - parseFloat(currWeight)) / (parseFloat(startWeight) - parseFloat(goalWeight))) * 100))
     : 0;
 
-  function handleSave() {
-    if (!startDate)                            { showToast('❌ Please pick a start date.', 'error'); return; }
+  async function handleSave() {
+    if (!startDate)                               { showToast('❌ Please pick a start date.', 'error'); return; }
     if (!goalWeight || parseFloat(goalWeight) < 30) { showToast('❌ Enter a valid goal weight.', 'error'); return; }
-    localStorage.setItem('setting_start_date',   startDate);
-    localStorage.setItem('setting_goal_weight',  goalWeight);
-    localStorage.setItem('setting_start_weight', startWeight);
+    await saveSettingsToCloud({ startDate, goalWeight, startWeight });
     setSaved(true);
-    showToast('✅ Settings saved! Dashboard updated.', 'success');
+    showToast('✅ Settings saved to cloud — all devices updated!', 'success');
     setTimeout(() => setSaved(false), 3000);
-  }
-
-  function handleCopySyncLink() {
-    const base = window.location.origin + window.location.pathname;
-    const link = `${base}?sd=${encodeURIComponent(startDate)}&gw=${encodeURIComponent(goalWeight)}&sw=${encodeURIComponent(startWeight)}`;
-    navigator.clipboard.writeText(link).then(() => {
-      showToast('📋 Sync link copied! Open it on your phone.', 'success');
-    }).catch(() => {
-      // Fallback: show in prompt
-      window.prompt('Copy this link and open on your phone:', link);
-    });
   }
 
   function handleReset() {
@@ -98,35 +71,15 @@ export default function SettingsPage() {
           {/* Header Card */}
           <div className="challenge-intro">
             <h2>⚙️ Settings</h2>
-            <p>Set your Day 0, weight goals and targets. All progress on the dashboard updates automatically.</p>
+            <p>Your settings sync across <strong>all devices</strong> via Google Sheets. Change once — all devices update.</p>
           </div>
 
-          {/* ── Mobile Sync Banner ── */}
-          {synced && (
-            <div style={{ background:'#e6f9ee', border:'2px solid #34c759', borderRadius:'var(--radius)', padding:'16px 18px', display:'flex', gap:12, alignItems:'center' }}>
-              <span style={{ fontSize:'1.4rem' }}>✅</span>
-              <div>
-                <div style={{ fontWeight:900, fontSize:'0.85rem', color:'#1a7a35' }}>Settings Synced!</div>
-                <div style={{ fontSize:'0.75rem', color:'#2a8a45', marginTop:2 }}>Your settings from the sync link have been applied and saved on this device.</div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Sync to Mobile Card ── */}
-          <div style={{ background:'linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)', border:'none', borderRadius:'var(--radius)', padding:'20px', color:'#fff', marginTop:4 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-              <span style={{ fontSize:'1.4rem' }}>📱</span>
-              <div style={{ fontWeight:900, fontSize:'0.9rem', letterSpacing:'0.5px' }}>Sync to Mobile</div>
-            </div>
-            <p style={{ fontSize:'0.78rem', color:'rgba(255,255,255,0.7)', lineHeight:1.6, margin:'0 0 16px' }}>
-              Settings are stored per-device. Copy this link and open it on your phone to instantly apply the same start date and goals there.
-            </p>
-            <button
-              onClick={handleCopySyncLink}
-              style={{ background:'#fff', color:'#1a1a2e', border:'none', borderRadius:'var(--radius-sm)', padding:'13px 20px', fontFamily:'inherit', fontSize:'0.78rem', fontWeight:900, letterSpacing:'1.5px', textTransform:'uppercase', cursor:'pointer', width:'100%', transition:'var(--transition)' }}
-            >
-              📋 Copy Sync Link → Open on Phone
-            </button>
+          {/* Cloud status */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', marginBottom:4 }}>
+            <span style={{ fontSize:'0.75rem' }}>{loading ? '⏳' : '☁️'}</span>
+            <span style={{ fontSize:'0.72rem', color: loading ? 'var(--text-3)' : '#1a8a3a', fontWeight:700 }}>
+              {loading ? 'Syncing with cloud…' : 'Synced with Google Sheets ✓'}
+            </span>
           </div>
 
           {/* Live Status Row */}
@@ -156,17 +109,16 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ── 75 Hard Settings ── */}
+          {/* 75 Hard Settings */}
           <div className="section-tag">75 Hard Challenge — Day 0</div>
           <div className="card">
             <div className="form-group">
               <label>Challenge Start Date (Day 0)</label>
               <input type="date" value={startDate} max={getTodayISO()} onChange={e => setStartDate(e.target.value)} />
               <div style={{ fontSize:'0.7rem', color:'var(--text-3)', marginTop:4, lineHeight:1.5 }}>
-                This is your reset date. Today automatically becomes Day {safeDayNum}.
+                Today automatically becomes Day {safeDayNum}. This syncs to all devices when you save.
               </div>
             </div>
-
             <div style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'14px 16px' }}>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, textAlign:'center' }}>
                 {[
@@ -183,7 +135,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ── Weight Settings ── */}
+          {/* Weight Settings */}
           <div className="section-tag">Weight Goal</div>
           <div className="card">
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
@@ -201,7 +153,6 @@ export default function SettingsPage() {
 
             <div style={{ height:16 }} />
 
-            {/* Weight Stats */}
             <div style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'14px 16px' }}>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, textAlign:'center', marginBottom:14 }}>
                 {[
@@ -215,7 +166,6 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
-              {/* Weight Progress Bar */}
               <div style={{ height:5, background:'var(--surface3)', borderRadius:99, overflow:'hidden', marginBottom:6 }}>
                 <div style={{ height:'100%', width:`${weightProgress}%`, background:'linear-gradient(90deg,#f5a623,#ffb94a)', borderRadius:99, transition:'width 0.8s ease' }} />
               </div>
@@ -230,9 +180,9 @@ export default function SettingsPage() {
           <div className="section-tag">How It Works</div>
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {[
+              { icon:'☁️', title:'Global Cloud Sync',  body:'Settings are saved to your Google Sheet. Every device — phone, tablet, laptop — loads the same settings automatically on page open.' },
               { icon:'📅', title:'Day 0 = Reset Date', body:'Set any past date as your Day 0. All challenge progress counts from that date. Change it anytime to restart.' },
-              { icon:'📱', title:'Sync Across Devices', body:'Tap "Copy Sync Link" on your computer, then open the link on your phone. Settings auto-apply instantly.' },
-              { icon:'☁️', title:'Google Sheets Safe', body:'Changing settings here only affects the dashboard display. All your Sheets data is completely untouched.' },
+              { icon:'🔒', title:'Google Sheets Safe',  body:'This only affects the dashboard display. All your logged food, body, and workout data in Sheets is completely untouched.' },
             ].map(p => (
               <div key={p.title} style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'16px 18px', display:'flex', gap:14, alignItems:'flex-start', boxShadow:'var(--shadow-sm)' }}>
                 <div style={{ fontSize:'1.3rem', flexShrink:0, marginTop:2 }}>{p.icon}</div>
@@ -247,7 +197,7 @@ export default function SettingsPage() {
           {/* Save */}
           <div style={{ marginTop:28, marginBottom:20 }}>
             <button className="btn" onClick={handleSave} style={{ background: saved ? '#1a8a3a' : 'var(--black)' }}>
-              {saved ? '✅ Settings Saved!' : 'Save Settings →'}
+              {saved ? '✅ Saved to All Devices!' : '☁️ Save & Sync to All Devices →'}
             </button>
           </div>
 

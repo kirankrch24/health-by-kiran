@@ -10,6 +10,9 @@ export const FOOD_APPS_SCRIPT_URL =
 export const BODY_APPS_SCRIPT_URL =
   'https://script.google.com/macros/s/AKfycbw9ZLRxo1N8ptv1dL91nlxrs78LP_FGq0bvHmVTEF0eTEDzu8suAHsIWep1rxM5QqEv/exec';
 
+// Settings sync — filled in after you deploy the Settings Apps Script
+export const SETTINGS_APPS_SCRIPT_URL = '';
+
 export const CHALLENGE_START_DATE = '2026-04-13';
 
 // Credentials (SHA-256 hashed — same as original)

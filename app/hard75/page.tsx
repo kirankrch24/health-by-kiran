@@ -3,8 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import AuthGuard from '@/components/AuthGuard';
 import ToastContainer, { showToast } from '@/components/Toast';
-import { getTodayISO, getDayNumber, loadSettings } from '@/lib/utils';
-import { APPS_SCRIPT_URL } from '@/lib/config';
+import { getTodayISO, getDayNumber, loadSettings, loadSettingsFromCloud, initSettingsUrl } from '@/lib/utils';
+import { APPS_SCRIPT_URL, SETTINGS_APPS_SCRIPT_URL } from '@/lib/config';
 
 interface Task { id: string; emoji: string; name: string; desc: string; done: boolean; }
 
@@ -28,9 +28,11 @@ export default function Hard75Page() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Always read from localStorage so Settings page changes take effect immediately
-    const s = loadSettings();
-    setStartDate(s.startDate);
+    initSettingsUrl(SETTINGS_APPS_SCRIPT_URL);
+    // Local first (instant), then cloud (authoritative)
+    const local = loadSettings();
+    setStartDate(local.startDate);
+    loadSettingsFromCloud().then(s => setStartDate(s.startDate)).catch(() => {});
   }, []);
 
   const dayNum    = getDayNumber(startDate, date);

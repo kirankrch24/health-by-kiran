@@ -4,8 +4,8 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import AuthGuard from '@/components/AuthGuard';
 import ToastContainer from '@/components/Toast';
-import { formatDate, getTodayISO, getDayNumber, loadSettings } from '@/lib/utils';
-import { FOOD_APPS_SCRIPT_URL, BODY_APPS_SCRIPT_URL, QUOTE } from '@/lib/config';
+import { formatDate, getTodayISO, getDayNumber, loadSettings, loadSettingsFromCloud, initSettingsUrl } from '@/lib/utils';
+import { FOOD_APPS_SCRIPT_URL, BODY_APPS_SCRIPT_URL, QUOTE, SETTINGS_APPS_SCRIPT_URL } from '@/lib/config';
 
 interface FoodLog {
   date?: string; Date?: string; time?: string; mealType?: string; mealtype?: string;
@@ -32,11 +32,17 @@ export default function DashboardPage() {
   const [foodDate,    setFoodDate]    = useState(getTodayISO());
 
   useEffect(() => {
-    // Load settings from localStorage (single source of truth)
-    const s = loadSettings();
-    setStartDate(s.startDate);
-    setGoalWeight(s.goalWeight);
-    setStartWeight(s.startWeight);
+    // Load settings — local first (instant), then cloud (authoritative)
+    initSettingsUrl(SETTINGS_APPS_SCRIPT_URL);
+    const local = loadSettings();
+    setStartDate(local.startDate);
+    setGoalWeight(local.goalWeight);
+    setStartWeight(local.startWeight);
+    loadSettingsFromCloud().then(s => {
+      setStartDate(s.startDate);
+      setGoalWeight(s.goalWeight);
+      setStartWeight(s.startWeight);
+    }).catch(() => {});
 
     // Load body metrics
     const w = localStorage.getItem('current_weight') || '';
